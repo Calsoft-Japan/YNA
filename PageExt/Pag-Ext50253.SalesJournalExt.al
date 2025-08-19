@@ -113,32 +113,34 @@ pageextension 50253 SalesJournalExt extends "Sales Journal"
                 BEGIN
                     Rec.LOCKTABLE();
                     SalesPaySetup.GET;
-                    IF Rec.FindLast() THEN
-                        REPEAT
-                            IF Rec."Account Type" = Rec."Account Type"::Customer THEN BEGIN
-                                localfilename := SalesPaySetup."Invoice Folder Path" + '/' + Rec."Account No." + '_' + DELCHR(COPYSTR(Rec."External Document No.", 1, 13), '<>') + '.PDF';
-                                LocalInvocieNumber := Rec."Account No." + '_' + DELCHR(COPYSTR(Rec."External Document No.", 1, 13), '<>');
-                                Incommingdoc.RESET;
-                                Incommingdoc.SETRANGE(Status, Incommingdoc.Status::New);
-                                Incommingdoc.SETRANGE(Incommingdoc."Journal Document No.", Rec."Document No.");
-                                Incommingdoc.SETRANGE(Incommingdoc."Journal Line No.", Rec."Line No.");
-                                IF Incommingdoc.FIND('-') THEN BEGIN
-                                    Incommingdoc.DELETE(TRUE);
+                    if not Rec.IsEmpty() then begin
+                        IF Rec.FindSet() THEN
+                            REPEAT
+                                IF Rec."Account Type" = Rec."Account Type"::Customer THEN BEGIN
+                                    localfilename := SalesPaySetup."Invoice Folder Path" + '/' + Rec."Account No." + '_' + DELCHR(COPYSTR(Rec."External Document No.", 1, 13), '<>') + '.PDF';
+                                    LocalInvocieNumber := Rec."Account No." + '_' + DELCHR(COPYSTR(Rec."External Document No.", 1, 13), '<>');
+                                    Incommingdoc.RESET;
+                                    Incommingdoc.SETRANGE(Status, Incommingdoc.Status::New);
+                                    Incommingdoc.SETRANGE(Incommingdoc."Journal Document No.", Rec."Document No.");
+                                    Incommingdoc.SETRANGE(Incommingdoc."Journal Line No.", Rec."Line No.");
+                                    IF Incommingdoc.FIND('-') THEN BEGIN
+                                        Incommingdoc.DELETE(TRUE);
+                                    END;
+                                    Incommingdoc.RESET;
+                                    Incommingdoc.INIT;
+                                    Incommingdoc."Entry No." := 0;
+                                    Incommingdoc."Document No." := Rec."Document No.";
+                                    Incommingdoc."Posting Date" := Rec."Posting Date";
+                                    Incommingdoc."Journal Document No." := Rec."Document No.";
+                                    Incommingdoc."Journal Line No." := Rec."Line No.";
+                                    Incommingdoc.Description := LocalInvocieNumber;
+                                    Incommingdoc.SetURL(localfilename);
+                                    Incommingdoc.INSERT(TRUE);
+                                    Rec."Incoming Document Entry No." := Incommingdoc."Entry No.";
+                                    Rec.MODIFY(TRUE);
                                 END;
-                                Incommingdoc.RESET;
-                                Incommingdoc.INIT;
-                                Incommingdoc."Entry No." := 0;
-                                Incommingdoc."Document No." := Rec."Document No.";
-                                Incommingdoc."Posting Date" := Rec."Posting Date";
-                                Incommingdoc."Journal Document No." := Rec."Document No.";
-                                Incommingdoc."Journal Line No." := Rec."Line No.";
-                                Incommingdoc.Description := LocalInvocieNumber;
-                                Incommingdoc.SetURL(localfilename);
-                                Incommingdoc.INSERT(TRUE);
-                                Rec."Incoming Document Entry No." := Incommingdoc."Entry No.";
-                                Rec.MODIFY(TRUE);
-                            END;
-                        UNTIL Rec.NEXT = 0;
+                            UNTIL Rec.NEXT = 0;
+                    end;
                 END;
             }
         }

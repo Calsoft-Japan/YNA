@@ -35,10 +35,11 @@ pageextension 50283 RecurringGeneralJournalExt extends "Recurring General Journa
                 BEGIN
                     Rec.LOCKTABLE();
                     GenPaySetup.GET;
-                    IF Rec.FindLast() THEN
-                        REPEAT
-                            IF Rec."Account Type" = Rec."Account Type"::Customer THEN BEGIN
-                                localfilename := GenPaySetup."File Folder Path" + '/' + Rec."Document No.";// + '.*';
+                    if not Rec.IsEmpty() then begin
+                        IF Rec.FindSet() THEN
+                            REPEAT
+                                //IF Rec."Account Type" = Rec."Account Type"::Customer THEN BEGIN
+                                localfilename := GenPaySetup."File Folder Path" + '/' + Rec."Document No." + '.PDF';// + '.*';
                                 LocalInvocieNumber := Rec."Document No.";
                                 Incommingdoc.RESET;
                                 Incommingdoc.SETRANGE(Status, Incommingdoc.Status::New);
@@ -59,8 +60,9 @@ pageextension 50283 RecurringGeneralJournalExt extends "Recurring General Journa
                                 Incommingdoc.INSERT(TRUE);
                                 Rec."Incoming Document Entry No." := Incommingdoc."Entry No.";
                                 Rec.MODIFY(TRUE);
-                            END;
-                        UNTIL Rec.NEXT = 0;
+                            //END;
+                            UNTIL Rec.NEXT = 0;
+                    end;
                 END;
             }
         }
