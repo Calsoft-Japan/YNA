@@ -1128,10 +1128,12 @@ THEN BEGIN
 THEN BEGIN
             IF GenJnlTemplate."Force Doc. Balance" THEN BEGIN
                 CASE TRUE OF
+                    /* bobby 2025/08/22 begin
                     DocBalance <> 0:
                         AddError(
                           STRSUBSTNO(
                             Text025, LastDocType, LastDocNo, DocBalance));
+                    bobby 2025/08/22 end*/
                     DocBalanceReverse <> 0:
                         AddError(
                           STRSUBSTNO(
@@ -1154,11 +1156,13 @@ THEN BEGIN
 
         IF (LastDate <> 0D) AND ((NextGenJnlLine."Posting Date" <> LastDate) OR (NextGenJnlLine."Line No." = LastLineNo)) THEN BEGIN
             CASE TRUE OF
+                /*bobby 2025/08/22 begin
                 DateBalance <> 0:
                     AddError(
                       STRSUBSTNO(
                         Text027,
                         LastDate, DateBalance));
+                bobby 2025/08/22 end*/
                 DateBalanceReverse <> 0:
                     AddError(
                       STRSUBSTNO(

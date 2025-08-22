@@ -3635,7 +3635,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=IIf(Last(Fields!BalanceLCY.Value)=0,"",Fields!WarningCaption.Value)</Value>
+                                                    <Value>=Fields!WarningCaption.Value</Value>
                                                     <Style>
                                                       <FontSize>7pt</FontSize>
                                                       <FontWeight>Bold</FontWeight>
@@ -3669,7 +3669,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=IIf(Last(Fields!BalanceLCY.Value)=0,"",Fields!ErrorTextNumber.Value)</Value>
+                                                    <Value>=Fields!ErrorTextNumber.Value</Value>
                                                     <Style>
                                                       <FontSize>7pt</FontSize>
                                                     </Style>
@@ -3689,6 +3689,7 @@
                                             </Style>
                                           </Textbox>
                                           <ColSpan>12</ColSpan>
+                                          <rd:Selected>true</rd:Selected>
                                         </CellContents>
                                       </TablixCell>
                                       <TablixCell />
@@ -4657,7 +4658,6 @@
                           <KeepTogether>true</KeepTogether>
                           <Style />
                         </Rectangle>
-                        <rd:Selected>true</rd:Selected>
                       </CellContents>
                     </TablixCell>
                   </TablixCells>

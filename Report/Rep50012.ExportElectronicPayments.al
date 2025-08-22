@@ -582,34 +582,34 @@ report 50012 "ExportElectronicPayments"
 
                 TotalAmountPaid := AmountPaid;
                 /*bobby 06302025
-                                IF (NOT CurrReport.PREVIEW) AND (NOT MailSkip) THEN BEGIN //CSPH1
-                                    CASE BankAccount."Export Format" OF
-                                        BankAccount."Export Format"::US:
-                                            BEGIN
-                                                IF "Bank Payment Type" = "Bank Payment Type"::"Electronic Payment" THEN
-                                                    TraceNumber := ExportPaymentsACH.ExportElectronicPayment("Gen. Journal Line", ExportAmount)
-                                                ELSE
-                                                    TraceNumber := ExportPaymentsIAT.ExportElectronicPayment("Gen. Journal Line", ExportAmount);
-                                            END;
-                                        BankAccount."Export Format"::CA:
-                                            TraceNumber := ExportPaymentsRB.ExportElectronicPayment("Gen. Journal Line", ExportAmount, SettleDate);
-                                        BankAccount."Export Format"::MX:
-                                            TraceNumber := ExportPaymentsCecoban.ExportElectronicPayment("Gen. Journal Line", ExportAmount, SettleDate);
-                                    END;
+                IF (NOT CurrReport.PREVIEW) AND (NOT MailSkip) THEN BEGIN //CSPH1
+                    CASE BankAccount."Export Format" OF
+                        BankAccount."Export Format"::US:
+                            BEGIN
+                                IF "Bank Payment Type" = "Bank Payment Type"::"Electronic Payment" THEN
+                                    TraceNumber := ExportPaymentsACH.ExportElectronicPayment("Gen. Journal Line", ExportAmount)
+                                ELSE
+                                    TraceNumber := ExportPaymentsIAT.ExportElectronicPayment("Gen. Journal Line", ExportAmount);
+                            END;
+                        BankAccount."Export Format"::CA:
+                            TraceNumber := ExportPaymentsRB.ExportElectronicPayment("Gen. Journal Line", ExportAmount, SettleDate);
+                        BankAccount."Export Format"::MX:
+                            TraceNumber := ExportPaymentsCecoban.ExportElectronicPayment("Gen. Journal Line", ExportAmount, SettleDate);
+                    END;
 
-                                    IF TraceNumber <> '' THEN BEGIN
-                                        "Posting Date" := SettleDate;
-                                        "Check Printed" := TRUE;
-                                        "Check Exported" := TRUE;
-                                        "Export File Name" := BankAccount."Last E-Pay Export File Name";
-                                        "Exported to Payment File" := TRUE;
-                                        BankAccount."Last Remittance Advice No." := INCSTR(BankAccount."Last Remittance Advice No.");
-                                        "Document No." := BankAccount."Last Remittance Advice No.";
-                                        MODIFY;
-                                        InsertIntoCheckLedger(TraceNumber, -ExportAmount);
-                                    END;
-                                END;
-                                */
+                    IF TraceNumber <> '' THEN BEGIN
+                        "Posting Date" := SettleDate;
+                        "Check Printed" := TRUE;
+                        "Check Exported" := TRUE;
+                        "Export File Name" := BankAccount."Last E-Pay Export File Name";
+                        "Exported to Payment File" := TRUE;
+                        BankAccount."Last Remittance Advice No." := INCSTR(BankAccount."Last Remittance Advice No.");
+                        "Document No." := BankAccount."Last Remittance Advice No.";
+                        MODIFY;
+                        InsertIntoCheckLedger(TraceNumber, -ExportAmount);
+                    END;
+                END;
+                */
                 LastProcessedGenJournalLine := "Gen. Journal Line";
 
             end;

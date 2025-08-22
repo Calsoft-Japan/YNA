@@ -574,6 +574,7 @@ report 50004 "Export E-Pay TO PDF"
                 END;
                 TotalAmountPaid := AmountPaid;
 
+                /* bobby 2025/08/21 begin
                 IF (NOT CurrReport.PREVIEW) AND (NOT MailSkip) THEN BEGIN //CSPH1
                     CASE BankAccount."Export Format" OF
                         BankAccount."Export Format"::US:
@@ -601,6 +602,7 @@ report 50004 "Export E-Pay TO PDF"
                         InsertIntoCheckLedger(TraceNumber, -ExportAmount);
                     END;
                 END;
+                bobby 2025/08/21 end*/
                 LastProcessedGenJournalLine := "Gen. Journal Line";
             end;
 
