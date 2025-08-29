@@ -63,7 +63,7 @@ report 50002 "Check 53 Bank"
                 dataitem(PrintSettledLoop; Integer)
                 {
                     DataItemTableView = SORTING(Number);
-                    MaxIteration = 10;
+                    //MaxIteration = 10; //Modified by Tony 8/29/2025
 
                     trigger OnAfterGetRecord()
                     var
@@ -148,6 +148,10 @@ report 50002 "Check 53 Bank"
                                                             FoundNegative := TRUE;
                                                         END;
                                                         //FoundLast := true; //hcj  0524
+                                                        //Added by Tony 8/29/2025 
+                                                        if VendLedgEntry.COUNT > 10 then begin
+                                                            isPrintself := false;
+                                                        end;
                                                     END;
                                             END;
                                             RemainingAmount := RemainingAmount - LineAmount;
@@ -336,7 +340,8 @@ report 50002 "Check 53 Bank"
                         ELSE
                             TotalText := '';
 
-                        isPrintself := TRUE;
+                        //Modified by Tony 8/29/2025
+                        /*isPrintself := TRUE;
                         IF GenJnlLine."Applies-to ID" <> '' THEN BEGIN
                             // FDD206 check the VLE first
                             VLE.RESET;
@@ -348,7 +353,7 @@ report 50002 "Check 53 Bank"
 
                                 END;
                             END;
-                        END;
+                        END;*/
                     end;
                 }
                 dataitem(PrintCheck; Integer)
@@ -1036,6 +1041,13 @@ report 50002 "Check 53 Bank"
 
                         ChecksPrinted := ChecksPrinted + 1;
                         FirstPage := FALSE;
+
+                        //Added by Tony 8/29/2025
+                        if dhbCopyIndex > 10 then begin
+                            isPrintself := false;
+                        end
+                        else
+                            isPrintself := true;
                     end;
                 }
 
@@ -1062,6 +1074,9 @@ report 50002 "Check 53 Bank"
                     FOR i := 1 TO dhbNumOfPadChar DO
                         dhbCheckNumberWithPad := dhbCheckNumberWithPad + dhbPadChar;
                     dhbCheckNumberWithPad := dhbCheckNumberWithPad + CheckNoText;
+
+                    //Added by Tony 8/29/2025
+                    isPrintself := true;
                 end;
 
                 trigger OnPostDataItem()
@@ -1151,6 +1166,7 @@ report 50002 "Check 53 Bank"
 
 
                     //CSPH1 FDD206 BEGIN
+                    isPrintself := true; //Added by Tony 8/29/2029
                     IF (GenJnlLine_Detail.COUNT > 10) AND FoundLast THEN BEGIN
                         COMMIT;
 
