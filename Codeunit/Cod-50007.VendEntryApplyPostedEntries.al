@@ -448,7 +448,7 @@ codeunit 50007 VendEntryApplyPostedEntriesExt
                             END;
                         UNTIL DetailVLE.NEXT = 0;
                         FinishPosting();
-                        COMMIT;
+                        //COMMIT;
                     END;
                 END;
             END;
@@ -686,6 +686,7 @@ codeunit 50007 VendEntryApplyPostedEntriesExt
 
             //bobby by 2025-3-28 begin
             GLReg."To Entry No." := GlobalGLEntry."Entry No.";
+            GLReg.INSERT;
             /*
             IF GLReg."To Entry No." = 0 THEN BEGIN
                 GLReg."To Entry No." := GlobalGLEntry."Entry No.";

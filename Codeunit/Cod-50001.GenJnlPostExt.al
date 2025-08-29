@@ -1,5 +1,15 @@
 codeunit 50001 GenJnlPostExt
 {
+    //lewis  20250829 add GLRegno = Last GL: register No
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Batch", OnProcessLinesOnAfterPostGenJnlLines, '', false, false)]
+    local procedure CS_OnProcessLinesOnAfterPostGenJnlLines(var GenJournalLine: Record "Gen. Journal Line"; GLRegister: Record "G/L Register";
+    var GLRegNo: Integer; PreviewMode: Boolean)
+    begin
+        if GLRegister.FindLast() then
+            GLRegNo := GLRegister."No.";
+    end;
+    //lewis  20250829 add GLRegno = Last GL: register No
+
     //CS 2025/1/10 Channing.Zhou FDD209
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post", OnBeforeCode, '', false, false)]
     local procedure OnBeforeCode(var GenJournalLine: Record "Gen. Journal Line"; var HideDialog: Boolean)

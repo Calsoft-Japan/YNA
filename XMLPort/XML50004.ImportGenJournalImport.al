@@ -2826,6 +2826,7 @@ THEN BEGIN
                                                                 tempGLE4."Bal. Account Type" := tempGLE4."Bal. Account Type"::"G/L Account";
                                                                 tempGLE4."Bal. Account No." := VendorPostingGroup."Payables Account";
                                                                 // tempGLE4."AP/AR Account No."  := VendorPostingGroup."Payables Account";
+                                                                tempGLE4.INSERT;
                                                             END
                                                             ELSE BEGIN
                                                                 //FileOperator.SaveLogFile(LogFileName, 'Line No.[' + FORMAT(tempGLE1."Line No.") + '] Vendor Posting Group Error, [' + Vendors."Vendor Posting Group" + '] doesn''t ' +
@@ -2838,7 +2839,7 @@ THEN BEGIN
                                                             END;
                                                         END;
 
-                                                        tempGLE4.INSERT;
+
 
                                                         Vendors.RESET;
                                                         Vendors.SETRANGE("No.", tempGLE1."Account No.");
@@ -2865,6 +2866,7 @@ THEN BEGIN
                                                                 tempGLE4."Bal. Account No." := CustPostingGroup."Receivables Account";
                                                                 tempGLE4."Pmt. Discount Date" := 0D;
                                                                 // tempGLE4."AP/AR Account No."  := VendorPostingGroup."Payables Account";
+                                                                tempGLE4.INSERT;
                                                             END
                                                             ELSE BEGIN
                                                                 //FileOperator.SaveLogFile(LogFileName, 'Line No.[' + FORMAT(tempGLE1."Line No.") + '] Customer Posting Group Error, [' + Customers."Customer Posting Group" + '] doesn''t ' +
@@ -2877,7 +2879,7 @@ THEN BEGIN
                                                             END;
                                                         END;
 
-                                                        tempGLE4.INSERT;
+
                                                         Customers.RESET;
                                                         Customers.SETRANGE("No.", tempGLE1."Account No.");
                                                         IF Customers.FIND('-') THEN BEGIN

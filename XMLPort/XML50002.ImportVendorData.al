@@ -133,7 +133,7 @@ xmlport 50002 ImportVendorData
                         tempVendor.INIT;
                         tempVendor := Vendor;
                         tempVendor."Search Name" := Vendor.Name;
-                        //tempVendor."Vendor Posting Group" := 'TRADE';
+                        tempVendor."Vendor Posting Group" := 'TRADE';
                         tempVendor.INSERT;
                     END;
 
