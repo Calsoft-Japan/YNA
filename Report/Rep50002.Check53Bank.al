@@ -26,17 +26,17 @@ report 50002 "Check 53 Bank"
 
             trigger OnPreDataItem()
             begin
-                //IF CurrReport.PREVIEW THEN
-                //  ERROR(Text000);
+                IF CurrReport.PREVIEW THEN
+                    ERROR(Text000);
 
                 IF UseCheckNo = '' THEN
                     ERROR(Text001);
 
-                //IF TestPrint THEN
-                //  CurrReport.BREAK;
+                IF TestPrint THEN
+                    CurrReport.BREAK;
 
-                //IF NOT ReprintChecks THEN
-                //  CurrReport.BREAK;
+                IF NOT ReprintChecks THEN
+                    CurrReport.BREAK;
 
                 IF (GETFILTER("Line No.") <> '') OR (GETFILTER("Document No.") <> '') THEN
                     ERROR(

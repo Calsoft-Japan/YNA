@@ -5,7 +5,8 @@ codeunit 50367 CheckManagementExt
                   TableData "Vendor Ledger Entry" = rm,
                   TableData "Bank Account Ledger Entry" = rm,
                   TableData "Check Ledger Entry" = rim,
-                  TableData "Employee Ledger Entry" = rm;
+                  TableData "Employee Ledger Entry" = rm,
+                  tabledata "G/L Entry" = rim;
 
     trigger OnRun()
     begin
@@ -14,6 +15,8 @@ codeunit 50367 CheckManagementExt
     var
         GenJnlLine2: Record "Gen. Journal Line";
         GGGenJnlLine4: Record "Gen. Journal Line" temporary;
+        GGGenJnlLine5: Record "Gen. Journal Line" temporary;
+        GGGenJnlLineGo: Record "Gen. Journal Line" temporary;
         BankAcc: Record "Bank Account";
         BankAccLedgEntry2: Record "Bank Account Ledger Entry";
         SourceCodeSetup: Record "Source Code Setup";
@@ -170,6 +173,12 @@ codeunit 50367 CheckManagementExt
         CheckAmountLCY: Decimal;
         BalanceAmountLCY: Decimal;
         IsHandled: Boolean;
+        Vend: Record Vendor;
+        VendpostingGr: Record "Vendor Posting Group";
+        ApplicationNo: Integer;
+        GenJnlLine1: Record "Gen. Journal Line";
+        iskip: Boolean;
+        lastLineNo: Integer;
     begin
         IsHandled := false;
         OnBeforeFinancialVoidCheck(CheckLedgEntry, IsHandled);
@@ -206,6 +215,7 @@ codeunit 50367 CheckManagementExt
         OnFinancialVoidCheckOnBeforePostVoidCheckLine(GenJnlLine2, CheckLedgEntry, BankAccLedgEntry2);
         GenJnlPostLine.RunWithCheck(GenJnlLine2);
         OnFinancialVoidCheckOnAfterPostVoidCheckLine(GenJnlLine2, GenJnlPostLine);
+
 
         // Mark newly posted entry as cleared for bank reconciliation purposes.
         if ConfirmFinancialVoid.GetVoidDate() = CheckLedgEntry."Check Date" then
@@ -279,6 +289,9 @@ codeunit 50367 CheckManagementExt
                             GenJnlLine2."Journal Batch Name" := BankAccLedgEntry2."Journal Batch Name";
                             if GenJnlLine2."Posting Group" <> VendorLedgEntry."Vendor Posting Group" then
                                 GenJnlLine2."Posting Group" := VendorLedgEntry."Vendor Posting Group";
+
+
+
                             OnFinancialVoidCheckOnBeforePostBalAccLine(GenJnlLine2, CheckLedgEntry);
                             GenJnlPostLine.RunWithCheck(GenJnlLine2);
                             OnFinancialVoidCheckOnAfterPostBalAccLine(GenJnlLine2, CheckLedgEntry, GenJnlPostLine);
@@ -361,6 +374,7 @@ codeunit 50367 CheckManagementExt
                 GenJnlLine2."Journal Batch Name" := BankAccLedgEntry2."Journal Batch Name";
                 OnFinancialVoidCheckOnBeforePostBalAccLine(GenJnlLine2, CheckLedgEntry);
                 GenJnlPostLine.RunWithCheck(GenJnlLine2);
+
                 OnFinancialVoidCheckOnAfterPostBalAccLine(GenJnlLine2, CheckLedgEntry, GenJnlPostLine);
             end;
         end;
@@ -378,7 +392,11 @@ codeunit 50367 CheckManagementExt
 
         MarkCheckEntriesVoid(CheckLedgEntry, ConfirmFinancialVoid.GetVoidDate());
 
-        //FDD210
+        // //FDD210
+
+
+
+        //GGGenJnlLineGo.LockTable();
         GGGenJnlLine4.RESET;
         IF GGGenJnlLine4.FIND('-') THEN BEGIN
             REPEAT
@@ -390,14 +408,87 @@ codeunit 50367 CheckManagementExt
                 GenJnlPostLine.RunWithoutCheck(GenJnlLine2);
 
             UNTIL GGGenJnlLine4.NEXT <= 0;
-            GGGenJnlLine4.DELETEALL;
-        END;
-        //FDD210 end
+        end;
+        //GGGenJnlLine4.DELETEALL;
+
+        //Commit();
+
+        insertGLEntry();
         Commit();
+
         UpdateAnalysisView.UpdateAll(0, true);
+
+
 
         OnAfterFinancialVoidCheck(CheckLedgEntry);
     end;
+
+
+    procedure insertGLEntry()
+    var
+        glEntry: Record "G/L Entry";
+        VendpostingGr: Record "Vendor Posting Group";
+    begin
+
+        GGGenJnlLine4.Reset();
+        if GGGenJnlLine4.FindFirst() then begin
+            repeat
+                VendpostingGr.GET("Posting Group");
+                if (GGGenJnlLine4."Bal. Account Type" = GGGenJnlLine4."Bal. Account Type"::"Bank Account")
+                                         and (GGGenJnlLine4."Account No." = VendpostingGr.GetPayablesAccount)
+                                         and (GGGenJnlLine4.Amount > 0) then begin
+                    glEntry.Reset();
+                    glEntry.SetRange("Document No.", GGGenJnlLine4."Document No.");
+                    glEntry.SetRange("G/L Account No.", '43600');
+                    glEntry.SetFilter(Amount, '>0');
+                    glEntry.SetRange("Bal. Account Type", glEntry."Bal. Account Type"::"G/L Account");
+                    if glEntry.FindFirst() then begin
+                        CreateOppositeRecord(glEntry);
+                    end;
+                end;
+            until GGGenJnlLine4.Next() = 0;
+        end;
+    end;
+
+    procedure CreateOppositeRecord(var GLEntry: Record "G/L Entry")
+    var
+        GLEntry2: Record "G/L Entry";
+        LastEntryNo: Integer;
+        lasTranNo: Integer;
+    begin
+        GLEntry.LockTable();
+        GLEntry2.LockTable();
+        GLEntry2.Reset();
+        GLEntry2.SetCurrentKey("Entry No.");
+        GLEntry2.FindLast();
+        LastEntryNo := GLEntry2."Entry No.";
+
+        GLEntry2.Reset();
+        GLEntry2.SetCurrentKey("Transaction No.");
+        GLEntry2.FindLast();
+        lasTranNo := GLEntry2."Transaction No." + 1;
+
+
+        GLEntry2.Reset();
+        GLEntry2.Init();
+        GLEntry2 := GLEntry;
+        GLEntry2."Entry No." := LastEntryNo + 1;
+        GLEntry2.Amount := GLEntry2.Amount * -1;
+
+        GLEntry2."Transaction No." := lasTranNo;
+        if GLEntry2.Amount > 0 then begin
+            GLEntry2."Debit Amount" := GLEntry2.Amount;
+            GLEntry2."Credit Amount" := 0;
+        end
+        else begin
+            GLEntry2."Debit Amount" := 0;
+            GLEntry2."Credit Amount" := -1 * GLEntry2.Amount;
+        end;
+        GLEntry2.Insert();
+
+
+    end;
+
 
     procedure GenJournalLineGetSystemIdFromRecordId(GenJournalLineRecordId: RecordId): Guid
     var
@@ -786,7 +877,11 @@ codeunit 50367 CheckManagementExt
         OnAfterCalcAmountToVoid(CheckLedgEntry, AmountToVoid);
     end;
 
-    local procedure InitGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; DocumentType: Enum "Gen. Journal Document Type"; DocumentNo: Code[20]; PostingDate: Date; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; Description: Text[50])
+    local procedure InitGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; DocumentType: Enum "Gen. Journal Document Type"; DocumentNo: Code[20];
+                                                                                                 PostingDate: Date;
+                                                                                                 AccountType: Enum "Gen. Journal Account Type";
+                                                                                                 AccountNo: Code[20];
+                                                                                                 Description: Text[50])
     begin
         GenJnlLine.Init();
         GenJnlLine."System-Created Entry" := true;
