@@ -1412,6 +1412,7 @@ report 50002 "Check 53 Bank"
                     {
                         Caption = 'One Check per Vendor';
                         ApplicationArea = Basic, Suite;
+                        Visible = false; // lewis 20250904 hide for BC bugs 
                     }
                     field(ReprintChecks; ReprintChecks)
                     {
@@ -1446,6 +1447,7 @@ report 50002 "Check 53 Bank"
 
         trigger OnOpenPage()
         begin
+
             IF BankAcc2."No." <> '' THEN BEGIN
                 IF BankAcc2.GET(BankAcc2."No.") THEN
                     UseCheckNo := BankAcc2."Last Check No."
@@ -1454,6 +1456,7 @@ report 50002 "Check 53 Bank"
                     UseCheckNo := '';
                 END;
             END;
+            OneCheckPrVendor := false;// lewis 20250904 hide for BC bugs 
         end;
     }
 

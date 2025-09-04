@@ -28,16 +28,16 @@ report 50006 "Trial Balance by Dimension"
                 column(DepartmentCode; Departmentcode)
                 {
                 }
-                column(BeginBalance; Amount)// beginBalance)
+                column(BeginBalance; beginBalance) //Amount)//
                 {
                 }
-                column(Debit; "Debit Amount")// sumdebit) // lewis. 20250827 modified
+                column(Debit; sumdebit) // lewis. 20250827 modified  "Debit Amount")//
                 {
                 }
-                column(Credit; "Credit Amount")// sumCredit) // lewis. 20250827 modified
+                column(Credit; sumCredit) // lewis. 20250827 modified "Credit Amount")//
                 {
                 }
-                column(endingbalance; "Add.-Curr. Amount")//endingbalance)
+                column(endingbalance; endingbalance) //"Add.-Curr. Amount")//
                 {
                 }
                 column(SubDesc; SubDesc)
@@ -85,15 +85,15 @@ report 50006 "Trial Balance by Dimension"
 
                             END;
 
-                        // IF GLE."Posting Date" < begindate THEN
-                        //     beginBalance := beginBalance + GLE.Amount;
-                        // IF GLE."Posting Date" <= endingdate THEN
-                        //     endingbalance := endingbalance + GLE.Amount;
+                            IF GLE."Posting Date" < begindate THEN
+                                beginBalance := beginBalance + GLE.Amount;
+                            IF GLE."Posting Date" <= endingdate THEN
+                                endingbalance := endingbalance + GLE.Amount;
 
-                        //IF (GLE."Posting Date" >= begindate) AND (GLE."Posting Date" <= endingdate) THEN BEGIN
-                        //    sumCredit := sumCredit + GLE."Credit Amount";
-                        //    sumdebit := sumdebit + GLE."Debit Amount";
-                        //END;
+                            IF (GLE."Posting Date" >= begindate) AND (GLE."Posting Date" <= endingdate) THEN BEGIN
+                                sumCredit := sumCredit + GLE."Credit Amount";
+                                sumdebit := sumdebit + GLE."Debit Amount";
+                            END;
 
                         UNTIL GLE.NEXT <= 0;
                     END;
@@ -202,29 +202,32 @@ report 50006 "Trial Balance by Dimension"
 
     procedure GetAmounts(var AVE: Record "Analysis View Entry" temporary)
     begin
-        TrueGLE.Reset();
-        TrueGLE.SetRange("G/L Account No.", AVE."Account No.");
-        //TrueGLE.SetRange("Global Dimension 1 Code", AVE."Dimension 1 Value Code");
-        TrueGLE.SetFilter("Posting Date", '<%1', begindate);
-        TrueGLE.CalcSums(Amount);
-        AVE.Amount := TrueGLE.Amount;
+        // TrueGLE.Reset();
+        // TrueGLE.SetRange("G/L Account No.", AVE."Account No.");
+        // TrueGLE.SetRange("Account Sub-code", SubCode);
+        // //TrueGLE.SetRange("Global Dimension 1 Code", AVE."Dimension 1 Value Code");
+        // TrueGLE.SetFilter("Posting Date", '<%1', begindate);
+        // TrueGLE.CalcSums(Amount);
+        // AVE.Amount := TrueGLE.Amount;
 
 
-        TrueGLE.Reset();
-        TrueGLE.SetRange("G/L Account No.", AVE."Account No.");
-        //TrueGLE.SetRange("Global Dimension 1 Code", AVE."Dimension 1 Value Code");
-        TrueGLE.SetFilter("Posting Date", '<=%1', endingdate);
-        TrueGLE.CalcSums(Amount);
-        AVE."Add.-Curr. Amount" := TrueGLE.Amount; //endingbalance 
+        // TrueGLE.Reset();
+        // TrueGLE.SetRange("G/L Account No.", AVE."Account No.");
+        // TrueGLE.SetRange("Account Sub-code", SubCode);
+        // //TrueGLE.SetRange("Global Dimension 1 Code", AVE."Dimension 1 Value Code");
+        // TrueGLE.SetFilter("Posting Date", '<=%1', endingdate);
+        // TrueGLE.CalcSums(Amount);
+        // AVE."Add.-Curr. Amount" := TrueGLE.Amount; //endingbalance 
 
-        TrueGLE.Reset();
-        TrueGLE.SetRange("G/L Account No.", AVE."Account No.");
-        //TrueGLE.SetRange("Global Dimension 1 Code", AVE."Dimension 1 Value Code");
-        TrueGLE.SetRange("Posting Date", begindate, endingdate);
-        TrueGLE.CalcSums(Amount, "Credit Amount", "Debit Amount");
-        AVE."Credit Amount" := TrueGLE."Credit Amount";
-        AVE."Debit Amount" := TrueGLE."Debit Amount";
-        AVE.Modify();
+        // TrueGLE.Reset();
+        // TrueGLE.SetRange("G/L Account No.", AVE."Account No.");
+        // TrueGLE.SetRange("Account Sub-code", SubCode);
+        // //TrueGLE.SetRange("Global Dimension 1 Code", AVE."Dimension 1 Value Code");
+        // TrueGLE.SetRange("Posting Date", begindate, endingdate);
+        // TrueGLE.CalcSums(Amount, "Credit Amount", "Debit Amount");
+        // AVE."Credit Amount" := TrueGLE."Credit Amount";
+        // AVE."Debit Amount" := TrueGLE."Debit Amount";
+        // AVE.Modify();
 
     end;
 }
