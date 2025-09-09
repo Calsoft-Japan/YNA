@@ -42,11 +42,11 @@ codeunit 50004 CustEntryApplyPostEn
 
                         ApplyingCustLedgEntry."Amount to Apply" := ApplyingCustLedgEntry."Remaining Amount";
                         CODEUNIT.RUN(CODEUNIT::"Cust. Entry-Edit", ApplyingCustLedgEntry);
-                        COMMIT;
+                        //COMMIT;
 
                         // set apply to id
                         SetApplytoID.SetApplId(CustLedgEntry, ApplyingCustLedgEntry, ApplyingCustLedgEntry."Original Document No.");
-                        COMMIT;
+                        //COMMIT;
                     END;
 
 

@@ -43,11 +43,11 @@ codeunit 50003 VendEntryApplyPostEn
 
                         ApplyingVendLedgEntry."Amount to Apply" := ApplyingVendLedgEntry."Remaining Amount";
                         CODEUNIT.RUN(CODEUNIT::"Vend. Entry-Edit", ApplyingVendLedgEntry);
-                        COMMIT;
+                        //COMMIT;
 
                         // set apply to id
                         SetApplytoID.SetApplId(VendLedgEntry, ApplyingVendLedgEntry, ApplyingVendLedgEntry."Original Document No.");
-                        COMMIT;
+                        //COMMIT;
                     END;
 
                     IF VendLedgEntry.Get(VendLedgEntryNo) THEN BEGIN

@@ -1175,11 +1175,13 @@ THEN BEGIN
 
         IF NextGenJnlLine."Line No." = LastLineNo THEN BEGIN
             CASE TRUE OF
-                TotalBalance <> 0:
-                    AddError(
-                      STRSUBSTNO(
-                        Text029,
-                        TotalBalance));
+                //lewis 20250908 comment it out begin
+                // TotalBalance <> 0:
+                //     AddError(
+                //       STRSUBSTNO(
+                //         Text029,
+                //         TotalBalance));
+                //lewis 20250908 comment it out end
                 TotalBalanceReverse <> 0:
                     AddError(
                       STRSUBSTNO(
