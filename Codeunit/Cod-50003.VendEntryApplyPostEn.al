@@ -39,14 +39,14 @@ codeunit 50003 VendEntryApplyPostEn
 
                         ApplyingVendLedgEntry."Applying Entry" := TRUE;
                         IF ApplyingVendLedgEntry."Applies-to ID" = '' THEN
-                            ApplyingVendLedgEntry."Applies-to ID" := ApplyingVendLedgEntry."Original Document No.";
+                            ApplyingVendLedgEntry."Applies-to ID" := ApplyingVendLedgEntry."Original Document No."; // ApplyingVendLedgEntry."Document No.";//backup lewis 20250923 if Original Document No. is 'YES' use "Document No."
 
                         ApplyingVendLedgEntry."Amount to Apply" := ApplyingVendLedgEntry."Remaining Amount";
                         CODEUNIT.RUN(CODEUNIT::"Vend. Entry-Edit", ApplyingVendLedgEntry);
                         //COMMIT;
 
                         // set apply to id
-                        SetApplytoID.SetApplId(VendLedgEntry, ApplyingVendLedgEntry, ApplyingVendLedgEntry."Original Document No.");
+                        SetApplytoID.SetApplId(VendLedgEntry, ApplyingVendLedgEntry, ApplyingVendLedgEntry."Original Document No.");//ApplyingVendLedgEntry."Document No.");//backup lewis 20250923 if Original Document No. is 'YES' use "Document No."
                         //COMMIT;
                     END;
 

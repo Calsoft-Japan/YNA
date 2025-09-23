@@ -38,19 +38,19 @@ codeunit 50004 CustEntryApplyPostEn
 
                         ApplyingCustLedgEntry."Applying Entry" := TRUE;
                         IF ApplyingCustLedgEntry."Applies-to ID" = '' THEN
-                            ApplyingCustLedgEntry."Applies-to ID" := ApplyingCustLedgEntry."Original Document No.";
+                            ApplyingCustLedgEntry."Applies-to ID" := ApplyingCustLedgEntry."Document No.";// ApplyingCustLedgEntry."Original Document No.";
 
                         ApplyingCustLedgEntry."Amount to Apply" := ApplyingCustLedgEntry."Remaining Amount";
                         CODEUNIT.RUN(CODEUNIT::"Cust. Entry-Edit", ApplyingCustLedgEntry);
                         //COMMIT;
 
                         // set apply to id
-                        SetApplytoID.SetApplId(CustLedgEntry, ApplyingCustLedgEntry, ApplyingCustLedgEntry."Original Document No.");
+                        SetApplytoID.SetApplId(CustLedgEntry, ApplyingCustLedgEntry, ApplyingCustLedgEntry."Document No.");//ApplyingCustLedgEntry."Original Document No.");
                         //COMMIT;
                     END;
 
 
-                    ActionPerformed := CustLedgEntry."Applies-to ID" <> '';
+                    ActionPerformed := ApplyingCustLedgEntry."Applies-to ID" <> '';// CustLedgEntry."Applies-to ID" <> '';
                     IF ActionPerformed THEN BEGIN
                         PostDirectApplication();
                     END;
