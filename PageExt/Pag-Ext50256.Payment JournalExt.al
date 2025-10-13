@@ -6,6 +6,87 @@ pageextension 50256 PaymentJournalExt extends "Payment Journal"
     }
     actions
     {
+
+        addafter(Post_Promoted)
+        {
+            actionref(CSPost_Promoted; CS_Post)
+            {
+
+            }
+            actionref(CSPostPreview_Promoted; CS_Preview)
+            {
+
+            }
+            actionref(PostandPrint_Promoted; "CS_Post and &Print")
+            {
+
+            }
+        }
+
+        modify(Post)
+        {
+            Visible = false;
+        }
+        modify(Preview)
+        {
+            Visible = false;
+        }
+        modify("Post and &Print")
+        {
+            Visible = false;
+        }
+
+        addafter(post)
+        {
+            action(CS_Post)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'P&ost';
+                Image = PostOrder;
+                ShortCutKey = 'F9';
+                ToolTip = 'Finalize the document or journal by posting the amounts and quantities to the related accounts in your company books.';
+
+                trigger OnAction()
+                begin
+                    Rec.SendToPosting(Codeunit::"CSGen. Jnl.-Post");
+                    CurrentJnlBatchName := Rec.GetRangeMax("Journal Batch Name");
+                    CurrPage.Update(false);
+                end;
+            }
+            action(CS_Preview)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Preview Posting';
+                Image = ViewPostedOrder;
+                ShortCutKey = 'Ctrl+Alt+F9';
+                ToolTip = 'Review the different types of entries that will be created when you post the document or journal.';
+
+                trigger OnAction()
+                var
+                    GenJnlPost: Codeunit "CSGen. Jnl.-Post";
+                begin
+                    GenJnlPost.Preview(Rec);
+                end;
+            }
+            action("CS_Post and &Print")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Post and &Print';
+                Image = PostPrint;
+                ShortCutKey = 'Shift+F9';
+                ToolTip = 'Finalize and prepare to print the document or journal. The values and quantities are posted to the related accounts. A report request window where you can specify what to include on the print-out.';
+
+                trigger OnAction()
+                begin
+                    Rec.SendToPosting(Codeunit::"CSGen. Jnl.-Post+Print");
+                    CurrentJnlBatchName := Rec.GetRangeMax("Journal Batch Name");
+
+                    CurrPage.Update(false);
+                end;
+            }
+
+
+        }
         modify("Void Check")
         {
             Visible = false;
@@ -108,4 +189,6 @@ pageextension 50256 PaymentJournalExt extends "Payment Journal"
         GenJnlLine.SETRANGE("Journal Batch Name", GenJnlLine."Journal Batch Name");
         REPORT.RUN(50005, TRUE, FALSE, GenJnlLine);
     end;
+
+
 }

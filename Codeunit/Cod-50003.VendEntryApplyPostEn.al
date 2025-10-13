@@ -75,7 +75,7 @@ codeunit 50003 VendEntryApplyPostEn
 
     local procedure PostDirectApplication()
     var
-        VendEntryApplyPostedEntries: Codeunit "VendEntry-Apply Posted Entries";
+        VendEntryApplyPostedEntries: Codeunit Eventsubscriber_and_CU227;  //"VendEntry-Apply Posted Entries";
         PostApplication: Page "Post Application";
         ApplicationDate: Date;
         NewApplicationDate: Date;
@@ -101,5 +101,10 @@ codeunit 50003 VendEntryApplyPostEn
 
         END;
     end;
+
+
+
+
+
 }
 

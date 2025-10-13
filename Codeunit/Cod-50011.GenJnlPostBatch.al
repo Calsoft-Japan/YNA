@@ -124,6 +124,7 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
     var
         TempMarkedGenJnlLine: Record "Gen. Journal Line" temporary;
         RaiseError: Boolean;
+
     begin
         OnBeforeCode(GenJnlLine, PreviewMode, SuppressCommit);
 
@@ -257,7 +258,9 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
         IsHandled := false;
         OnProcessLinesOnBeforeSetGLRegNoToZero(GenJnlLine, GLRegNo, IsHandled, GenJnlPostLine);
         if not IsHandled then
-            if not GLReg.FindLast() or (GLReg."No." <> GLRegNo) then
+            //if not GLReg.FindLast() or (GLReg."No." <> GLRegNo) then  //lewis comment out.
+            //    GLRegNo := 0;
+        IF NOT GLReg.FINDLAST OR (GLReg."No." < GLRegNo) THEN // orginal code fix 3/22/2016 hcj for fdd210--->(GLReg."No." <> GLRegNo) THEN
                 GLRegNo := 0;
 
         GenJnlLine.Init();
@@ -327,6 +330,14 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
         IsProcessingKeySet: Boolean;
         IsHandled: Boolean;
         ShouldCheckDocNoBasedOnNoSeries, SkipCheckingPostingNoSeries : Boolean;
+
+        //CSV lewis.
+        APACC: Code[10];
+        GLACC_CIP: Boolean;
+        GLACCNON_CIP: Boolean;
+        Warning_CIP: Text;
+        DocNo_CIP: Text;
+        LastDocNo_CIP: Text;
     begin
         IsProcessingKeySet := false;
         OnBeforeProcessBalanceOfLines(GenJnlLine, GenJnlBatch, GenJnlTemplate, IsProcessingKeySet);
@@ -348,6 +359,15 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
         CurrentBalanceReverse := 0;
         CurrencyBalance := 0;
 
+        // Start [T20170613.0021] 41510-217* Restriction check logic. 6/15/2017 by J.WU
+        APACC := '';
+        GLACC_CIP := FALSE;
+        GLACCNON_CIP := FALSE;
+        Warning_CIP := '';
+        DocNo_CIP := '';
+        LastDocNo_CIP := '';
+        // End [T20170613.0021] 41510-217* Restriction check logic. 6/15/2017 by J.WU
+
         GenJnlLine.FindSet(true);
         LastCurrencyCode := GenJnlLine."Currency Code";
 
@@ -357,6 +377,36 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
             if not IsHandled then begin
                 LineCount := LineCount + 1;
                 UpdateDialog(RefPostingState::"Checking balance", LineCount, NoOfRecords);
+
+                // Start [T20170613.0021] 41510-217* Restriction check logic. 6/15/2017 by J.WU
+                LastDocNo_CIP := DocNo_CIP;
+                DocNo_CIP := FORMAT(GenJnlLine."Document No.");
+                IF (LastDocNo_CIP <> '') AND (DocNo_CIP <> LastDocNo_CIP) THEN BEGIN
+                    IF (APACC = '41510') AND GLACCNON_CIP THEN BEGIN
+                        Warning_CIP := 'Balance account No. for 41510 is not 217xx. Do you want to continue? (Document No.: ' + LastDocNo_CIP + ')';
+                        IF NOT CONFIRM(Warning_CIP, TRUE) THEN
+                            ERROR('Please correct balance account No.')
+                    END;
+
+                    IF GLACC_CIP AND (APACC <> '41510') AND (APACC <> '') THEN BEGIN
+                        Warning_CIP := 'AP Account No. for 217xx is not 41510. Do you want to continue? (Document No.: ' + LastDocNo_CIP + ')';
+                        IF NOT CONFIRM(Warning_CIP, TRUE) THEN
+                            ERROR('Please correct AP Account No.')
+                    END;
+                    APACC := '';
+                    GLACC_CIP := FALSE;
+                    GLACCNON_CIP := FALSE;
+                END;
+
+                IF (GenJnlLine."Journal Template Name" = 'PURCHASES') AND (GenJnlLine."Journal Batch Name" <> 'MSR') THEN BEGIN
+                    IF GenJnlLine."Account Type" = 2 THEN
+                        APACC := GenJnlLine."AP/AR Account No.";
+                    IF (GenJnlLine."Account Type" = 0) AND (FORMAT(GenJnlLine."Account No.", 3) = '217') THEN
+                        GLACC_CIP := TRUE;
+                    IF (GenJnlLine."Account Type" = 0) AND (FORMAT(GenJnlLine."Account No.", 3) <> '217') THEN
+                        GLACCNON_CIP := TRUE;
+                END;
+                // End [T20170613.0021] 41510-217* Restriction check logic. 6/15/2017 by J.WU
 
                 if not GenJnlLine.EmptyLine() then begin
                     ShouldCheckDocNoBasedOnNoSeries := not PreviewMode and (GenJnlBatch."No. Series" <> '') and (LastDocNo <> GenJnlLine."Document No.") and (not GenJnlLine."Check Printed");
@@ -462,6 +512,21 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
             end;
         until GenJnlLine.Next() = 0;
         CheckBalance(GenJnlLine);
+
+        // Start [T20170613.0021] 41510-217* Restriction check logic. 6/15/2017 by J.WU
+        IF (APACC = '41510') AND GLACCNON_CIP THEN BEGIN
+            Warning_CIP := 'Balance account No. for 41510 is not 217xx. Do you want to continue? (Document No.: ' + DocNo_CIP + ')';
+            IF NOT CONFIRM(Warning_CIP, TRUE) THEN
+                ERROR('Please correct balance account No.')
+        END;
+        IF GLACC_CIP AND (APACC <> '41510') AND (APACC <> '') THEN BEGIN
+            Warning_CIP := 'AP Account No. for 217xx is not 41510. Do you want to continue? (Document No.: ' + DocNo_CIP + ')';
+            IF NOT CONFIRM(Warning_CIP, TRUE) THEN
+                ERROR('Please correct AP Account No.')
+        END;
+        // End [T20170613.0021] 41510-217* Restriction check logic. 6/15/2017 by J.WU
+
+
         CopyFields(GenJnlLine);
         if VATEntryCreated and VATInfoSourceLineIsInserted then
             UpdateGenJnlLineWithVATInfo(GenJnlLine, GenJnlLineVATInfoSource, StartLineNo, LastLineNo);

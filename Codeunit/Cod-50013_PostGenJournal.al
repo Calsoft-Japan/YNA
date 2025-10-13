@@ -8,6 +8,33 @@ codeunit 50013 "CSGen. Jnl.-Post"
         GenJnlLine: Record "Gen. Journal Line";
     begin
         GenJnlLine.Copy(Rec);
+
+        //hcj begin
+        IF GenJnlLine.FIND('-') THEN BEGIN
+            REPEAT
+                //new requirement check AP/Ar Account no. when Document Type = Invoice OR Credit Memo OR Blank? AND Account Type = Vendor
+                IF ((GenJnlLine."Document Type" = GenJnlLine."Document Type"::Invoice) OR
+                    (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") OR
+                    (GenJnlLine."Document Type" = GenJnlLine."Document Type"::" "))
+                     AND (GenJnlLine."Account Type" = GenJnlLine."Account Type"::Vendor) THEN BEGIN
+                    IF GenJnlLine."AP/AR Account No." = '' THEN
+                        ERROR('AP Account No. cannot be blank. (Document Type: ' + FORMAT(GenJnlLine."Document Type") + ', Document No.: ' +
+                        GenJnlLine."Document No." + ', Vendor: ' + GenJnlLine."Account No." + ')');
+
+                    IF (GenJnlLine."Journal Batch Name" <> 'MSR') AND (GenJnlLine."External Document No." = '') THEN
+                        ERROR('External Document No. cannot be blank. (Document Type: ' + FORMAT(GenJnlLine."Document Type") + ', Document no: ' +
+                        GenJnlLine."Document No." + ', Vendor: ' + GenJnlLine."Account No." + ')');
+
+                END;
+                // END new requirement
+
+                tempGenJnlLine.INIT;
+                tempGenJnlLine := GenJnlLine;
+                tempGenJnlLine.INSERT;
+            UNTIL GenJnlLine.NEXT = 0;
+        END;
+        //hcj end
+
         Code(GenJnlLine);
         Rec.Copy(GenJnlLine);
 
@@ -30,6 +57,9 @@ codeunit 50013 "CSGen. Jnl.-Post"
         GenJnlsScheduled: Boolean;
         PreviewMode: Boolean;
 
+        tempGenJnlLine: Record "Gen. Journal Line" temporary;
+        typeCount: Integer;
+
     local procedure "Code"(var GenJnlLine: Record "Gen. Journal Line")
     var
         GenJnlTemplate: Record "Gen. Journal Template";
@@ -43,6 +73,11 @@ codeunit 50013 "CSGen. Jnl.-Post"
         HideDialog: Boolean;
         IsHandled: Boolean;
         ShouldExit: Boolean;
+        //CSV-------
+        applyentry: Codeunit VendEntryApplyPostEn;
+        VendorLedEntry: Record "Vendor Ledger Entry";
+        Custapplyentry: Codeunit CustEntryApplyPostEn;
+        CustLedEntry: Record "Cust. Ledger Entry";
     begin
         HideDialog := false;
         OnBeforeCode(GenJnlLine, HideDialog);
@@ -115,6 +150,83 @@ codeunit 50013 "CSGen. Jnl.-Post"
 
             ShowPostResultMessage(GenJnlLine, TempJnlBatchName);
         end;
+
+
+        //hcj begin
+        IF tempGenJnlLine.FIND('-') THEN BEGIN
+            REPEAT
+                IF tempGenJnlLine."External Document No." = '' THEN BEGIN
+                    IF (tempGenJnlLine."Original Document No." <> '') AND
+                    (tempGenJnlLine."Journal Template Name" = 'PURCHASES')
+                           AND (tempGenJnlLine."Account Type" = tempGenJnlLine."Account Type"::Vendor) THEN BEGIN
+                        VendorLedEntry.RESET;
+                        VendorLedEntry.SETRANGE("Document No.", tempGenJnlLine."Document No.");
+                        VendorLedEntry.SETRANGE("Vendor No.", tempGenJnlLine."Account No.");
+                        VendorLedEntry.SETRANGE("External Document No.", tempGenJnlLine."External Document No.");
+                        IF VendorLedEntry.FIND('-') THEN BEGIN
+                            applyentry.RUN(VendorLedEntry);
+                        END;
+                    END
+                END
+                ELSE BEGIN
+                    IF (tempGenJnlLine."Original Document No." <> '') AND
+                    (tempGenJnlLine."Journal Template Name" = 'PURCHASES')
+                           AND (tempGenJnlLine."Account Type" = tempGenJnlLine."Account Type"::Vendor) THEN BEGIN
+                        VendorLedEntry.RESET;
+                        VendorLedEntry.SETRANGE("Document No.", tempGenJnlLine."Document No.");
+                        VendorLedEntry.SETRANGE("Vendor No.", tempGenJnlLine."Account No.");
+                        VendorLedEntry.SETFILTER("External Document No.",
+                             COPYSTR(tempGenJnlLine."External Document No.", 1, STRLEN(tempGenJnlLine."External Document No.") - 15) + '*');
+                        VendorLedEntry.SETRANGE("AP Account No.", tempGenJnlLine."AP/AR Account No.");
+                        VendorLedEntry.SETRANGE("Document Type", tempGenJnlLine."Document Type");
+                        IF VendorLedEntry.FIND('-') THEN BEGIN
+                            applyentry.RUN(VendorLedEntry);
+                        END;
+                    END
+
+                END;
+            UNTIL tempGenJnlLine.NEXT = 0;
+        END;
+        // hcj end
+
+
+        //hcj begin Apply for sales
+        IF tempGenJnlLine.FIND('-') THEN BEGIN
+            REPEAT
+                IF tempGenJnlLine."External Document No." = '' THEN BEGIN
+                    IF (tempGenJnlLine."Original Document No." <> '') AND
+                    (tempGenJnlLine."Journal Template Name" = 'SALES')
+                           AND (tempGenJnlLine."Account Type" = tempGenJnlLine."Account Type"::Customer) THEN BEGIN
+                        CustLedEntry.RESET;
+                        CustLedEntry.SETRANGE("Document No.", tempGenJnlLine."Document No.");
+                        CustLedEntry.SETRANGE("Customer No.", tempGenJnlLine."Account No.");
+                        CustLedEntry.SETRANGE("External Document No.", tempGenJnlLine."External Document No.");
+                        IF CustLedEntry.FIND('-') THEN BEGIN
+                            Custapplyentry.RUN(CustLedEntry);
+                        END;
+                    END
+                END
+                ELSE BEGIN
+                    IF (tempGenJnlLine."Original Document No." <> '') AND
+                    (tempGenJnlLine."Journal Template Name" = 'SALES')
+                           AND (tempGenJnlLine."Account Type" = tempGenJnlLine."Account Type"::Customer) THEN BEGIN
+                        CustLedEntry.RESET;
+                        CustLedEntry.SETRANGE("Document No.", tempGenJnlLine."Document No.");
+                        CustLedEntry.SETRANGE("Customer No.", tempGenJnlLine."Account No.");
+                        CustLedEntry.SETFILTER("External Document No.",
+                             COPYSTR(tempGenJnlLine."External Document No.", 1, STRLEN(tempGenJnlLine."External Document No.") - 12) + '*');
+                        CustLedEntry.SETRANGE("AR Account No.", tempGenJnlLine."AP/AR Account No.");
+                        CustLedEntry.SETRANGE("Document Type", tempGenJnlLine."Document Type");
+                        IF CustLedEntry.FIND('-') THEN BEGIN
+                            Custapplyentry.RUN(CustLedEntry);
+                        END;
+                    END
+
+                END;
+            UNTIL tempGenJnlLine.NEXT = 0;
+        END;
+        // hcj end Sales
+
 
         if not GenJnlLine.Find('=><') or (TempJnlBatchName <> GenJnlLine."Journal Batch Name") or GeneralLedgerSetup."Post with Job Queue" then begin
             GenJnlLine.Reset();
