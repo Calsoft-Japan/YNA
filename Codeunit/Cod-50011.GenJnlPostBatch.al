@@ -119,6 +119,7 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
         TwoPlaceHoldersTok: Label '%1%2', Locked = true;
         ServiceSessionTok: Label '#%1#%2#', Locked = true;
         GlblDimNoInconsistErr: Label 'A setting for one or more global or shortcut dimensions is incorrect. To fix it, choose the link in the Source column. For more information, choose the link in the Support URL column.';
+        PostingDateErr: Label 'is not within your range of allowed posting dates';
 
     local procedure "Code"(var GenJnlLine: Record "Gen. Journal Line")
     var
@@ -184,6 +185,10 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
         OnBeforeProcessLines(GenJnlLine, PreviewMode, SuppressCommit);
 
         if not GenJnlLine.Find('=><') then begin
+            if GenJnlLine.IsRecurring() then
+                if GenJnlCheckLine.DateNotAllowed(GenJnlLine."Posting Date") then
+                    GenJnlLine.FieldError("Posting Date", ErrorInfo.Create(PostingDateErr, true));
+
             GenJnlLine."Line No." := 0;
             if PreviewMode then
                 GenJnlPostPreview.ThrowError();
@@ -254,6 +259,7 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
 
         OnProcessLinesOnAfterPostGenJnlLines(GenJnlLine, GLReg, GLRegNo, PreviewMode);
 
+
         // Copy register no. and current journal batch name to general journal
         IsHandled := false;
         OnProcessLinesOnBeforeSetGLRegNoToZero(GenJnlLine, GLRegNo, IsHandled, GenJnlPostLine);
@@ -273,6 +279,7 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
             GenJnlPostPreview.ThrowError();
         end;
 
+
         TempGenJnlBatch.Copy(GenJnlBatch);
 
         // Update/delete lines
@@ -284,6 +291,7 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
         DeleteDimBalBatch(GenJnlLine, true);
 
         OnBeforeCommit(GLRegNo, GenJnlLine, GenJnlPostLine);
+
 
         if not SuppressCommit then
             Commit();
@@ -319,11 +327,6 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         BalVATPostingSetup: Record "VAT Posting Setup";
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesMgt: Codeunit NoSeriesManagement;
-#pragma warning restore AL0432
-#endif
         ErrorMessage: Text;
         LastDocTypeOption: Option;
         ForceCheckBalance: Boolean;
@@ -412,18 +415,6 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
                     ShouldCheckDocNoBasedOnNoSeries := not PreviewMode and (GenJnlBatch."No. Series" <> '') and (LastDocNo <> GenJnlLine."Document No.") and (not GenJnlLine."Check Printed");
                     SkipCheckingPostingNoSeries := false;
                     OnProcessBalanceOfLinesOnAfterCalcShouldCheckDocNoBasedOnNoSeries(GenJnlLine, GenJnlBatch, ShouldCheckDocNoBasedOnNoSeries, SkipCheckingPostingNoSeries, LastDocNo, CurrentBalance);
-#if not CLEAN24
-                    if ShouldCheckDocNoBasedOnNoSeries then begin
-                        // raises the old event.
-                        GenJnlLine.ObsoleteCheckDocNoBasedOnNoSeries(LastDocNo, GenJnlBatch."No. Series", NoSeriesMgt);
-                        if GenJnlLine."Document No." = NoSeriesBatch.PeekNextNo(GenJnlBatch."No. Series", GenJnlLine."Posting Date") then
-                            // No. used is same as peek so need to save it.
-                            NoSeriesBatch.GetNextNo(GenJnlBatch."No. Series", GenJnlLine."Posting Date")
-                        else
-                            // manual nos should be allowed.
-                            NoSeriesBatch.TestManual(GenJnlBatch."No. Series", GenJnlLine."Document No.");
-                    end;
-#else
                     if ShouldCheckDocNoBasedOnNoSeries then
                         if GenJnlLine."Document No." = NoSeriesBatch.PeekNextNo(GenJnlBatch."No. Series", GenJnlLine."Posting Date") then
                             // No. used is same as peek so need to save it.
@@ -431,7 +422,6 @@ codeunit 50011 "CS_Gen. Jnl.-Post Batch"
                         else
                             // manual nos should be allowed.
                             NoSeriesBatch.TestManual(GenJnlBatch."No. Series", GenJnlLine."Document No.");
-#endif
                     if not SkipCheckingPostingNoSeries then
                         if GenJnlLine."Posting No. Series" <> '' then
                             GenJnlLine.TestField("Posting No. Series", GenJnlBatch."Posting No. Series");

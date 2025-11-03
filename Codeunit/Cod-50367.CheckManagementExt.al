@@ -74,9 +74,6 @@ codeunit 50367 CheckManagementExt
         CheckLedgEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(CheckLedgEntry."User ID"));
         CheckLedgEntry."Entry No." := NextCheckEntryNo;
         CheckLedgEntry."Print Gen Jnl Line SystemId" := GenJournalLineGetSystemIdFromRecordId(RecordIdToPrint);
-#if not CLEAN24
-        CheckLedgEntry."Record ID to Print" := RecordIdToPrint;
-#endif        
         OnInsertCheckOnBeforeCheckLedgEntryInsert(CheckLedgEntry);
         CheckLedgEntry.Insert();
         OnInsertCheckOnAfterCheckLedgEntryInsert(CheckLedgEntry);

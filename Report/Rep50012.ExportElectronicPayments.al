@@ -813,16 +813,22 @@ report 50012 "ExportElectronicPayments"
                     body := '';
                     PostingDateOptionValue := PostingDateOption;
 
-                    XmlParameters := '<?xml version="1.0" standalone="yes"?><ReportParameters name="Export E-Pay TO PDF" id="50004"><Options><Field name="BankAccountNo">' + BankAccount."No." + '</Field><Field name="SettleDate">' + Format(SettleDate, 0, '<Year4>-<Month,2>-<Day,2>') + '</Field><Field name="PostingDateOption">' + Format(PostingDateOptionValue) + '</Field><Field name="NoCopies">0</Field><Field name="PrintCompany">' + PrintCompanyType + '</Field><Field name="NeedEmail">false</Field></Options><DataItems><DataItem name="Gen. Journal Line">VERSION(1) SORTING(Field1,Field51,Field2) WHERE(Field1=1(' + GenLine."Journal Template Name" + '),Field51=1(' + GenLine."Journal Batch Name" + '),Field3=1(' + Format(GenLine."Account Type") + '),Field4=1(' + Format(GenLine."Account No.") + '))</DataItem><DataItem name="CopyLoop">VERSION(1) SORTING(Field1)</DataItem><DataItem name="PageLoop">VERSION(1) SORTING(Field1)</DataItem><DataItem name="Cust. Ledger Entry">VERSION(1) SORTING(Field3,Field36,Field43,Field37,Field11) ORDER(1)</DataItem><DataItem name="Vendor Ledger Entry">VERSION(1) SORTING(Field3,Field36,Field43,Field37,Field11) ORDER(1)</DataItem><DataItem name="Unapplied">VERSION(1) SORTING(Field1)</DataItem></DataItems></ReportParameters>';
+                    //original code.lewis.20251030 comment out 
+                    //XmlParameters := '<?xml version="1.0" standalone="yes"?><ReportParameters name="Export E-Pay TO PDF" id="50004"><Options><Field name="BankAccountNo">' + BankAccount."No." + '</Field><Field name="SettleDate">' + Format(SettleDate, 0, '<Year4>-<Month,2>-<Day,2>') + '</Field><Field name="PostingDateOption">' + Format(PostingDateOptionValue) + '</Field><Field name="NoCopies">0</Field><Field name="PrintCompany">' + PrintCompanyType + '</Field><Field name="NeedEmail">false</Field></Options><DataItems><DataItem name="Gen. Journal Line">VERSION(1) SORTING(Field1,Field51,Field2) WHERE(Field1=1(' + GenLine."Journal Template Name" + '),Field51=1(' + GenLine."Journal Batch Name" + '),Field3=1(' + Format(GenLine."Account Type") + '),Field4=1(' + Format(GenLine."Account No.") + '))</DataItem><DataItem name="CopyLoop">VERSION(1) SORTING(Field1)</DataItem><DataItem name="PageLoop">VERSION(1) SORTING(Field1)</DataItem><DataItem name="Cust. Ledger Entry">VERSION(1) SORTING(Field3,Field36,Field43,Field37,Field11) ORDER(1)</DataItem><DataItem name="Vendor Ledger Entry">VERSION(1) SORTING(Field3,Field36,Field43,Field37,Field11) ORDER(1)</DataItem><DataItem name="Unapplied">VERSION(1) SORTING(Field1)</DataItem></DataItems></ReportParameters>';
+
+                    XmlParameters := GetRequestParametersText(Report::"Export E-Pay TO PDF");//original code.lewis.20251030 added
+
                     tmpBlobsTemp.CreateOutStream(mOutStreams);
                     if Report.SaveAs(Report::"Export E-Pay TO PDF", XmlParameters, ReportFormat::Pdf, mOutStreams) then begin
                         tmpBlobsTemp.CreateInStream(mInStreams);
                         txtB64 := cnv64.ToBase64(mInStreams, true);
                         if txtB64 <> '' then begin
+
                             Vendor.GET(VendorNo);
                             if Vendor."E-Mail" <> '' then begin
                                 EmailMessage.Create(Vendor."E-Mail", subject, body, true);
-                                EmailMessage.AddAttachment(attchmentname, 'application/pdf', txtB64);
+                                //EmailMessage.AddAttachment(attchmentname, 'application/pdf', txtB64); //original code.lewis.20251030 comment out 
+                                EmailMessage.AddAttachment(attchmentname, 'PDF', mInStreams);
                                 EmailCU.Send(EmailMessage);
                             end;
                         end;
@@ -831,6 +837,23 @@ report 50012 "ExportElectronicPayments"
                 END;
             UNTIL GenLine.NEXT = 0;
         //CSPH1 END
+    end;
+
+    local procedure GetRequestParametersText(ReportID: Integer): Text
+    var
+        TempBlob: Codeunit "Temp Blob";
+        InStr: InStream;
+        ReqPageXML: Text;
+        Index: Integer;
+        TempBlobIndicesNameValueBuffer: Record "Name/Value Buffer" temporary;
+        TempBlobList: Codeunit "Temp Blob List";
+    begin
+        TempBlobIndicesNameValueBuffer.Get(ReportID);
+        Evaluate(Index, TempBlobIndicesNameValueBuffer.Value);
+        TempBlobList.Get(Index, TempBlob);
+        TempBlob.CreateInStream(InStr);
+        InStr.ReadText(ReqPageXML);
+        exit(ReqPageXML);
     end;
 
     trigger OnPreReport()

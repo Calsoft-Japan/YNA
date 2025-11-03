@@ -34,6 +34,7 @@ pageextension 50256 PaymentJournalExt extends "Payment Journal"
         modify("Post and &Print")
         {
             Visible = false;
+            Caption = 'Post and &Print- BC';
         }
 
         addafter(post)
@@ -77,7 +78,24 @@ pageextension 50256 PaymentJournalExt extends "Payment Journal"
                 ToolTip = 'Finalize and prepare to print the document or journal. The values and quantities are posted to the related accounts. A report request window where you can specify what to include on the print-out.';
 
                 trigger OnAction()
+                var
+                    GenJline: Record "Gen. Journal Line" temporary;
+                    strCustLine: Text;
                 begin
+                    //    ----- begin  check if the Incoming Document Entry No. is empty  08042017 edit by lewis-----
+                    IF Rec.FindFirst() THEN BEGIN
+                        strCustLine := '';
+                        REPEAT
+                            IF (Rec."Account Type" in [Rec."Account Type"::Customer, Rec."Account Type"::Vendor]) AND (Rec."Incoming Document Entry No." = 0) THEN
+                                strCustLine := FORMAT(Rec."Line No.") + ', '
+                                      UNTIL Rec.NEXT <= 0;
+                        IF strCustLine <> '' THEN BEGIN
+                            IF NOT DIALOG.CONFIRM('One or more journal lines do not have incoming document link. Do you want to continue?', FALSE, strCustLine) THEN
+                                EXIT;
+                        END;
+                    END;
+                    Commit();
+                    //    ----- end  check if the Incoming Document Entry No. is empty  08042017 edit by lewis-----
                     Rec.SendToPosting(Codeunit::"CSGen. Jnl.-Post+Print");
                     CurrentJnlBatchName := Rec.GetRangeMax("Journal Batch Name");
 

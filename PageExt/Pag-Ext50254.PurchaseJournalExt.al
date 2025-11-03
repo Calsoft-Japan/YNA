@@ -62,9 +62,100 @@ pageextension 50254 "Purchase Journal Ext" extends "Purchase Journal"
     }
     actions
     {
+
+        addafter(post)
+        {
+            action(CS_Post)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'P&ost';
+                Image = PostOrder;
+                ShortCutKey = 'F9';
+                ToolTip = 'Finalize the document or journal by posting the amounts and quantities to the related accounts in your company books.';
+
+                trigger OnAction()
+                var
+                    GenJline: Record "Gen. Journal Line" temporary;
+                    StrVendoLine: Text;
+                begin
+                    //    ----- begin  check if the Incoming Document Entry No. is empty  08042017 edit by lewis-----
+                    IF Rec.FindFirst() THEN BEGIN
+                        StrVendoLine := '';
+                        REPEAT
+                            IF (Rec."Account Type" = Rec."Account Type"::Vendor) AND (Rec."Incoming Document Entry No." = 0) THEN
+                                StrVendoLine := FORMAT(Rec."Line No.") + ', '
+                        UNTIL Rec.NEXT <= 0;
+                        IF StrVendoLine <> '' THEN BEGIN
+                            IF NOT DIALOG.CONFIRM('One or more journal lines do not have incoming document link. Do you want to continue?', FALSE, StrVendoLine) THEN
+                                Error('');
+                        END;
+                    END;
+                    //    ----- end  check if the Incoming Document Entry No. is empty  08042017 edit by lewis-----
+
+                    Rec.SendToPosting(Codeunit::"CSGen. Jnl.-Post");
+                    CurrentJnlBatchName := Rec.GetRangeMax("Journal Batch Name");
+                    CurrPage.Update(false);
+                end;
+            }
+            action(CS_Preview)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Preview Posting';
+                Image = ViewPostedOrder;
+                ShortCutKey = 'Ctrl+Alt+F9';
+                ToolTip = 'Review the different types of entries that will be created when you post the document or journal.';
+
+                trigger OnAction()
+                var
+                    GenJnlPost: Codeunit "CSGen. Jnl.-Post";
+                begin
+                    GenJnlPost.Preview(Rec);
+                end;
+            }
+            action("CS_Post and &Print")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Post and &Print';
+                Image = PostPrint;
+                ShortCutKey = 'Shift+F9';
+                ToolTip = 'Finalize and prepare to print the document or journal. The values and quantities are posted to the related accounts. A report request window where you can specify what to include on the print-out.';
+
+                trigger OnAction()
+                var
+                    GenJline: Record "Gen. Journal Line" temporary;
+                    StrVendoLine: Text;
+                BEGIN
+                    //    ----- begin  check if the Incoming Document Entry No. is empty  08042017 edit by lewis-----
+                    IF Rec.FindFirst() THEN BEGIN
+                        StrVendoLine := '';
+                        REPEAT
+                            IF (Rec."Account Type" = Rec."Account Type"::Vendor) AND (Rec."Incoming Document Entry No." = 0) THEN
+                                StrVendoLine := FORMAT(Rec."Line No.") + ', '
+                        UNTIL Rec.NEXT <= 0;
+                        IF StrVendoLine <> '' THEN BEGIN
+                            IF NOT DIALOG.CONFIRM('One or more journal lines do not have incoming document link. Do you want to continue?', FALSE, StrVendoLine) THEN
+                                Error('');
+                        END;
+                    END;
+                    //    ----- end  check if the Incoming Document Entry No. is empty  08042017 edit by lewis-----
+                    Rec.SendToPosting(Codeunit::"CSGen. Jnl.-Post+Print");
+                    CurrentJnlBatchName := Rec.GetRangeMax("Journal Batch Name");
+
+                    CurrPage.Update(false);
+                end;
+            }
+
+
+        }
+
+        modify(Preview)
+        {
+            Visible = false;
+        }
         //CS 2025/1/13 Channing.Zhou FDD209 start
         modify(Post)
         {
+            Visible = false;
             trigger OnBeforeAction()
             var
                 GenJline: Record "Gen. Journal Line" temporary;
@@ -87,6 +178,7 @@ pageextension 50254 "Purchase Journal Ext" extends "Purchase Journal"
         }
         modify("Post and &Print")
         {
+            Visible = false;
             trigger OnBeforeAction()
             var
                 GenJline: Record "Gen. Journal Line" temporary;
@@ -176,8 +268,27 @@ pageextension 50254 "Purchase Journal Ext" extends "Purchase Journal"
                 end;
             }
         }
+        addafter(Post_Promoted)
+        {
+            actionref(CSPost_Promoted; CS_Post)
+            {
+
+            }
+            actionref(CSPostPreview_Promoted; CS_Preview)
+            {
+
+            }
+            actionref(PostandPrint_Promoted; "CS_Post and &Print")
+            {
+
+            }
+        }
+
         addafter("Apply Entries_Promoted")
         {
+
+
+
             actionref("Create Invoice File Link_Promoted"; "Create Invoice File Link")
             {
             }
