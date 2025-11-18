@@ -1,13 +1,13 @@
-table 50002 "TempGenJnlLine"
+table 50003 "GlobalGenJnlLine"
 {
 
-    Caption = 'TempGenJnlLine';
+    Caption = 'GlobalGenJnlLine';
 
     fields
     {
         field(1; "Entry No."; Integer)
         {
-            AutoIncrement = true;
+            //AutoIncrement = true;
         }
         field(2; "User ID"; Code[50])
         {

@@ -48,7 +48,9 @@ codeunit 50001 GenJnlPostExt
         Warning_CIP: Text;
         DocNo_CIP: Text;
         LastDocNo_CIP: Text;
-        TempGenJnlLine: Record TempGenJnlLine;
+        TempGenJnlLine: Record GlobalGenJnlLine;
+        LastTempGJLineno: Integer;
+        glreg: Record "G/L Register";
     begin
         //bobby begin
         TempGenJnlLine.Reset();
@@ -76,8 +78,24 @@ codeunit 50001 GenJnlPostExt
                 // END new requirement
 
                 //bobby begin
+
+                // lewis add glreg.no - > tempgenjnlline.No
+
+
+                TempGenJnlLine.Reset();
+                if TempGenJnlLine.FindLast() then
+                    LastTempGJLineno := TempGenJnlLine."Entry No." + 1
+                else
+                    LastTempGJLineno := 1;
                 TempGenJnlLine.Init();
-                TempGenJnlLine."Entry No." := 0;
+                TempGenJnlLine."Entry No." := LastTempGJLineno;
+
+
+                glreg.Reset();
+                if glreg.FindLast() then
+                    TempGenJnlLine."GLReg EntryNo" := glreg."No."
+                else
+                    TempGenJnlLine."GLReg EntryNo" := 0;
                 TempGenJnlLine."User ID" := UserId;
                 TempGenJnlLine."Account No." := GenJournalLine."Account No.";
                 TempGenJnlLine."Account Type" := GenJournalLine."Account Type";
@@ -87,6 +105,7 @@ codeunit 50001 GenJnlPostExt
                 TempGenJnlLine."External Document No." := GenJournalLine."External Document No.";
                 TempGenJnlLine."Journal Template Name" := GenJournalLine."Journal Template Name";
                 TempGenJnlLine."Original Document No." := GenJournalLine."Original Document No.";
+
                 TempGenJnlLine.Insert();
             //bobby end
 
@@ -158,7 +177,7 @@ codeunit 50001 GenJnlPostExt
         VendorLedEntry: Record "Vendor Ledger Entry";
         Custapplyentry: Codeunit CustEntryApplyPostEn;
         CustLedEntry: Record "Cust. Ledger Entry";
-        tempGenJnlLine: Record TempGenJnlLine;
+        tempGenJnlLine: Record GlobalGenJnlLine;
     begin
         //bobby begin
         tempGenJnlLine.Reset();
@@ -252,7 +271,9 @@ codeunit 50001 GenJnlPostExt
         Warning_CIP: Text;
         DocNo_CIP: Text;
         LastDocNo_CIP: Text;
-        TempGenJnlLine: Record TempGenJnlLine;
+        TempGenJnlLine: Record GlobalGenJnlLine;
+        glreg: Record "G/L Register";
+        LastTempGJLineno: Integer;
     begin
         //bobby begin
         TempGenJnlLine.Reset();
@@ -280,8 +301,22 @@ codeunit 50001 GenJnlPostExt
                 // END new requirement
 
                 //bobby begin
+                //hcj
+                TempGenJnlLine.Reset();
+                if TempGenJnlLine.FindLast() then
+                    LastTempGJLineno := TempGenJnlLine."Entry No." + 1
+                else
+                    LastTempGJLineno := 1;
                 TempGenJnlLine.Init();
-                TempGenJnlLine."Entry No." := 0;
+                TempGenJnlLine."Entry No." := LastTempGJLineno;
+                //hcj
+
+                //TempGenJnlLine.Init();
+                glreg.Reset();
+                if glreg.FindLast() then
+                    TempGenJnlLine."GLReg EntryNo" := glreg."No."
+                else
+                    TempGenJnlLine."GLReg EntryNo" := 0;
                 TempGenJnlLine."User ID" := UserId;
                 TempGenJnlLine."Account No." := GenJournalLine."Account No.";
                 TempGenJnlLine."Account Type" := GenJournalLine."Account Type";
@@ -362,7 +397,7 @@ codeunit 50001 GenJnlPostExt
         VendorLedEntry: Record "Vendor Ledger Entry";
         Custapplyentry: Codeunit CustEntryApplyPostEn;
         CustLedEntry: Record "Cust. Ledger Entry";
-        tempGenJnlLine: Record TempGenJnlLine;
+        tempGenJnlLine: Record GlobalGenJnlLine;
     begin
         //bobby begin
         tempGenJnlLine.Reset();

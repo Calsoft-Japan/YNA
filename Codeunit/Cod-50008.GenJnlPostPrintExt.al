@@ -11,7 +11,7 @@ codeunit 50008 GenJnlPostPrintExt
         VendorLedEntry: Record "Vendor Ledger Entry";
         Custapplyentry: Codeunit CustEntryApplyPostEn;
         CustLedEntry: Record "Cust. Ledger Entry";
-        tempGenJnlLine: Record TempGenJnlLine;
+        tempGenJnlLine: Record GlobalGenJnlLine;
     begin
         //bobby begin
         tempGenJnlLine.Reset();
@@ -101,7 +101,9 @@ codeunit 50008 GenJnlPostPrintExt
         Warning_CIP: Text;
         DocNo_CIP: Text;
         LastDocNo_CIP: Text;
-        TempGenJnlLine: Record TempGenJnlLine;
+        TempGenJnlLine: Record GlobalGenJnlLine;
+        glreg: Record "G/L Register";
+        LastTempGJLineno: Integer;
     begin
 
         //bobby begin
@@ -124,9 +126,25 @@ codeunit 50008 GenJnlPostPrintExt
                         GenJournalLine."Document No." + ' and Vendor is ' + GenJournalLine."Account No." + ')');
                 END;
                 // END new requirement
-                //bobby begin
+                //bobby begin                
+
+                //hcj
+                TempGenJnlLine.Reset();
+                if TempGenJnlLine.FindLast() then
+                    LastTempGJLineno := TempGenJnlLine."Entry No." + 1
+                else
+                    LastTempGJLineno := 1;
                 TempGenJnlLine.Init();
-                TempGenJnlLine."Entry No." := 0;
+                TempGenJnlLine."Entry No." := LastTempGJLineno;
+                //hcj
+
+                //TempGenJnlLine.Init();
+                //TempGenJnlLine."Entry No." := 0;
+                glreg.Reset();
+                if glreg.FindLast() then
+                    TempGenJnlLine."GLReg EntryNo" := glreg."No."
+                else
+                    TempGenJnlLine."GLReg EntryNo" := 0;
                 TempGenJnlLine."User ID" := UserId;
                 TempGenJnlLine."Account No." := GenJournalLine."Account No.";
                 TempGenJnlLine."Account Type" := GenJournalLine."Account Type";
@@ -281,39 +299,38 @@ codeunit 50008 GenJnlPostPrintExt
         GLReg: Record "G/L Register";
         CustLedgEntry: Record "Cust. Ledger Entry";
         VendLedgEntry: Record "Vendor Ledger Entry";
-        TempGenJnlLine: Record TempGenJnlLine;
+        TempGenJnlLine: Record GlobalGenJnlLine;
     begin
 
         //IF GLReg.GET(GenJournalLine."Line No.") then;
+        //IF GLReg.GET(GenJournalLine."Line No.") then;
+        intEntryFrom := 0;
+        intEntryTo := 0;
 
 
         GenJnlTemplate.Get(GenJournalLine."Journal Template Name");
 
         GeneralLedgerSetup.Get();
-        if GLReg.Get(GenJournalLine."Line No.") then begin
+
+
+        if GLReg.Get(GenJournalLine."Line No.") then
+            intEntryTo := GLReg."To Entry No.";
+
+
+        tempGenJnlLine.Reset();
+        tempGenJnlLine.SetRange("User ID", UserId);
+        IF TempGenJnlLine.FindFirst() THEN BEGIN
+            GLReg.Reset();
+            if GLReg.Get(TempGenJnlLine."GLReg EntryNo" + 1) then
+                intEntryFrom := GLReg."From Entry No.";
+        end;
+
+        if intEntryFrom > 0 then begin
 
             // Bobby FDD201 20250214 BEGIN
-            intEntryFrom := 0;
-            intEntryTo := 0;
-            intEntryFrom := GLReg."From Entry No.";
 
-            tempGenJnlLine.Reset();
-            tempGenJnlLine.SetRange("User ID", UserId);
-            IF TempGenJnlLine.FindFirst() THEN BEGIN
-                intEntryFrom := GLReg."From Entry No.";
-                REPEAT
-                    GLEntry.RESET;
-                    GLEntry.SETRANGE("Document No.", TempGenJnlLine."Document No.");
 
-                    IF GLEntry.FindLast() THEN BEGIN
 
-                        intEntryTo := GLEntry."Entry No.";
-
-                    END;
-
-                UNTIL TempGenJnlLine.NEXT = 0;
-            END;
-            //Bobby FDD201 20250214 END
 
             if GenJnlTemplate."Cust. Receipt Report ID" <> 0 then begin
                 //CustLedgEntry.SetRange("Entry No.", GLReg."From Entry No.", GLReg."To Entry No."); //original code
@@ -472,7 +489,7 @@ codeunit 50008 GenJnlPostPrintExt
         VendorLedEntry: Record "Vendor Ledger Entry";
         Custapplyentry: Codeunit CustEntryApplyPostEn;
         CustLedEntry: Record "Cust. Ledger Entry";
-        tempGenJnlLine: Record TempGenJnlLine;
+        tempGenJnlLine: Record GlobalGenJnlLine;
     begin
         //bobby begin
         tempGenJnlLine.Reset();
@@ -562,7 +579,9 @@ codeunit 50008 GenJnlPostPrintExt
         Warning_CIP: Text;
         DocNo_CIP: Text;
         LastDocNo_CIP: Text;
-        TempGenJnlLine: Record TempGenJnlLine;
+        TempGenJnlLine: Record GlobalGenJnlLine;
+        glreg: Record "G/L Register";
+        LastTempGJLineno: Integer;
     begin
         //bobby begin
         TempGenJnlLine.Reset();
@@ -585,8 +604,26 @@ codeunit 50008 GenJnlPostPrintExt
                 END;
                 // END new requirement
                 //bobby begin
+
+
+
+                //hcj
+                TempGenJnlLine.Reset();
+                if TempGenJnlLine.FindLast() then
+                    LastTempGJLineno := TempGenJnlLine."Entry No." + 1
+                else
+                    LastTempGJLineno := 1;
                 TempGenJnlLine.Init();
-                TempGenJnlLine."Entry No." := 0;
+                TempGenJnlLine."Entry No." := LastTempGJLineno;
+                //hcj
+
+                //TempGenJnlLine.Init();
+                //TempGenJnlLine."Entry No." := 0;
+                glreg.Reset();
+                if glreg.FindLast() then
+                    TempGenJnlLine."GLReg EntryNo" := glreg."No."
+                else
+                    TempGenJnlLine."GLReg EntryNo" := 0;
                 TempGenJnlLine."User ID" := UserId;
                 TempGenJnlLine."Account No." := GenJournalLine."Account No.";
                 TempGenJnlLine."Account Type" := GenJournalLine."Account Type";
@@ -668,39 +705,37 @@ codeunit 50008 GenJnlPostPrintExt
         GLReg: Record "G/L Register";
         CustLedgEntry: Record "Cust. Ledger Entry";
         VendLedgEntry: Record "Vendor Ledger Entry";
-        TempGenJnlLine: Record TempGenJnlLine;
+        TempGenJnlLine: Record GlobalGenJnlLine;
     begin
 
         //IF GLReg.GET(GenJournalLine."Line No.") then;
+        intEntryFrom := 0;
+        intEntryTo := 0;
 
 
         GenJnlTemplate.Get(GenJournalLine."Journal Template Name");
 
         GeneralLedgerSetup.Get();
-        if GLReg.Get(GenJournalLine."Line No.") then begin
+
+
+        if GLReg.Get(GenJournalLine."Line No.") then
+            intEntryTo := GLReg."To Entry No.";
+
+
+        tempGenJnlLine.Reset();
+        tempGenJnlLine.SetRange("User ID", UserId);
+        IF TempGenJnlLine.FindFirst() THEN BEGIN
+            GLReg.Reset();
+            if GLReg.Get(TempGenJnlLine."GLReg EntryNo" + 1) then
+                intEntryFrom := GLReg."From Entry No.";
+        end;
+
+        if intEntryFrom > 0 then begin
 
             // Bobby FDD201 20250214 BEGIN
-            intEntryFrom := 0;
-            intEntryTo := 0;
-            intEntryFrom := GLReg."From Entry No.";
 
-            tempGenJnlLine.Reset();
-            tempGenJnlLine.SetRange("User ID", UserId);
-            IF TempGenJnlLine.FindFirst() THEN BEGIN
-                intEntryFrom := GLReg."From Entry No.";
-                REPEAT
-                    GLEntry.RESET;
-                    GLEntry.SETRANGE("Document No.", TempGenJnlLine."Document No.");
 
-                    IF GLEntry.FindLast() THEN BEGIN
 
-                        intEntryTo := GLEntry."Entry No.";
-
-                    END;
-
-                UNTIL TempGenJnlLine.NEXT = 0;
-            END;
-            //Bobby FDD201 20250214 END
 
             if GenJnlTemplate."Cust. Receipt Report ID" <> 0 then begin
                 //CustLedgEntry.SetRange("Entry No.", GLReg."From Entry No.", GLReg."To Entry No."); //original code
