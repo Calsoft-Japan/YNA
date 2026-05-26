@@ -232,78 +232,74 @@ codeunit 50010 Eventsubscriber_and_CU227
                         IF APVLE.FIND('-') THEN BEGIN
                             //  TempGLEntryBuf.DELETEALL();
                             IF (APVLE."Entry No." = VendLedgEntry."Entry No.") THEN BEGIN
-                                WITH APVLE DO BEGIN
 
-                                    GenJnlLine2.RESET;
-                                    GenJnlLine2.INIT;
-                                    GenJnlLine2."Posting Date" := ApplyUnapplyParameters."Posting Date";
+                                GenJnlLine2.RESET;
+                                GenJnlLine2.INIT;
+                                GenJnlLine2."Posting Date" := ApplyUnapplyParameters."Posting Date";
 
-                                    CALCFIELDS(APVLE.Amount);
-                                    CALCFIELDS(APVLE."Amount (LCY)");
-                                    CALCFIELDS(APVLE."Remaining Amt. (LCY)");
-                                    CALCFIELDS(APVLE."Original Amt. (LCY)");
-                                    CopyVLEtoGenJnlLine(APVLE, GenJnlLine2);
-                                    GenJnlLine2."Document Type" := GenJnlLine2."Document Type"::Payment;
-                                    IF APVLE."AP Account No." <> '' THEN
-                                        GenJnlLine2."Account No." := APVLE."AP Account No.";
+                                APVLE.CALCFIELDS(APVLE.Amount);
+                                APVLE.CALCFIELDS(APVLE."Amount (LCY)");
+                                APVLE.CALCFIELDS(APVLE."Remaining Amt. (LCY)");
+                                APVLE.CALCFIELDS(APVLE."Original Amt. (LCY)");
+                                CopyVLEtoGenJnlLine(APVLE, GenJnlLine2);
+                                GenJnlLine2."Document Type" := GenJnlLine2."Document Type"::Payment;
+                                IF APVLE."AP Account No." <> '' THEN
+                                    GenJnlLine2."Account No." := APVLE."AP Account No.";
 
-                                    GenJnlLine2."Source Line No." := APVLE."Entry No.";
-                                    IF APVLE."Entry No." = VendLedgEntry."Entry No." THEN BEGIN
-                                        Vend.GET(APVLE."Vendor No.");
-                                        Vend.CheckBlockedVendOnJnls(Vend, "Document Type", TRUE);
+                                GenJnlLine2."Source Line No." := APVLE."Entry No.";
+                                IF APVLE."Entry No." = VendLedgEntry."Entry No." THEN BEGIN
+                                    Vend.GET(APVLE."Vendor No.");
+                                    Vend.CheckBlockedVendOnJnls(Vend, APVLE."Document Type", TRUE);
 
-                                        IF "Posting Group" = '' THEN BEGIN
-                                            Vend.TESTFIELD("Vendor Posting Group");
-                                            "Posting Group" := Vend."Vendor Posting Group";
-                                        END;
-                                        VendpostingGr.GET("Posting Group");
-                                        GenJnlLine2."Account No." := VendpostingGr.GetPayablesAccount;
-
-                                        GenJnlLine2."System-Created Entry" := TRUE;
-                                        GenJnlLine2."Source Line No." := 0;
-
+                                    IF "Posting Group" = '' THEN BEGIN
+                                        Vend.TESTFIELD("Vendor Posting Group");
+                                        "Posting Group" := Vend."Vendor Posting Group";
                                     END;
+                                    VendpostingGr.GET("Posting Group");
+                                    GenJnlLine2."Account No." := VendpostingGr.GetPayablesAccount;
 
-                                    //IF DetailVLE."Entry Type" = DetailVLE."Entry Type"::"Payment Discount" THEN
-                                    BEGIN
-                                        GenJnlLine2.Amount := DetailVLE.Amount;
-                                        GenJnlLine2."Amount (LCY)" := DetailVLE."Amount (LCY)";
-                                    END
-                                    //   ELSE
-                                    //   BEGIN
-                                    //     GenJnlLine2.Amount := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
-                                    //     GenJnlLine2."Amount (LCY)" := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
-                                    //   END;
+                                    GenJnlLine2."System-Created Entry" := TRUE;
+                                    GenJnlLine2."Source Line No." := 0;
+
                                 END;
+
+                                //IF DetailVLE."Entry Type" = DetailVLE."Entry Type"::"Payment Discount" THEN
+                                BEGIN
+                                    GenJnlLine2.Amount := DetailVLE.Amount;
+                                    GenJnlLine2."Amount (LCY)" := DetailVLE."Amount (LCY)";
+                                END
+                                //   ELSE
+                                //   BEGIN
+                                //     GenJnlLine2.Amount := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
+                                //     GenJnlLine2."Amount (LCY)" := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
+                                //   END;
 
                             END;
 
                             IF (APVLE."AP Account No." <> '') OR (APVLE."Entry No." = VendLedgEntry."Entry No.") THEN BEGIN
-                                WITH APVLE DO BEGIN
-                                    GenJnlLine2."Posting Date" := ApplyUnapplyParameters."Posting Date";
-                                    CALCFIELDS(APVLE.Amount);
-                                    CALCFIELDS(APVLE."Amount (LCY)");
-                                    CALCFIELDS(APVLE."Remaining Amt. (LCY)");
-                                    CALCFIELDS(APVLE."Original Amt. (LCY)");
-                                    GenJnlLine2."Document Type" := GenJnlLine2."Document Type"::Payment;
-                                    IF APVLE."AP Account No." <> '' THEN
-                                        GenJnlLine2."Account No." := APVLE."AP Account No.";
+                                GenJnlLine2."Posting Date" := ApplyUnapplyParameters."Posting Date";
+                                APVLE.CALCFIELDS(APVLE.Amount);
+                                APVLE.CALCFIELDS(APVLE."Amount (LCY)");
+                                APVLE.CALCFIELDS(APVLE."Remaining Amt. (LCY)");
+                                APVLE.CALCFIELDS(APVLE."Original Amt. (LCY)");
+                                GenJnlLine2."Document Type" := GenJnlLine2."Document Type"::Payment;
+                                IF APVLE."AP Account No." <> '' THEN
+                                    GenJnlLine2."Account No." := APVLE."AP Account No.";
 
-                                    GenJnlLine2."Source Line No." := APVLE."Entry No.";
-                                    //  IF DetailVLE."Entry Type" = DetailVLE."Entry Type"::"Payment Discount" THEN
-                                    //  BEGIN
-                                    GenJnlLine2.Amount := DetailVLE.Amount;
-                                    GenJnlLine2."Amount (LCY)" := DetailVLE."Amount (LCY)";
-                                    //   END
-                                    //   ELSE
-                                    //   BEGIN
-                                    //     GenJnlLine2.Amount := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
-                                    //     GenJnlLine2."Amount (LCY)" := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
-                                    //   END;
+                                GenJnlLine2."Source Line No." := APVLE."Entry No.";
+                                //  IF DetailVLE."Entry Type" = DetailVLE."Entry Type"::"Payment Discount" THEN
+                                //  BEGIN
+                                GenJnlLine2.Amount := DetailVLE.Amount;
+                                GenJnlLine2."Amount (LCY)" := DetailVLE."Amount (LCY)";
+                                //   END
+                                //   ELSE
+                                //   BEGIN
+                                //     GenJnlLine2.Amount := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
+                                //     GenJnlLine2."Amount (LCY)" := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
+                                //   END;
 
 
-                                    PostGLAcc(GenJnlLine2);
-                                END;
+                                PostGLAcc(GenJnlLine2);
                                 //COMMIT;
                             END;
 
@@ -571,42 +567,38 @@ codeunit 50010 Eventsubscriber_and_CU227
                         APVLE.SETRANGE("Entry No.", DetailVLE."Vendor Ledger Entry No.");
                         IF APVLE.FIND('-') THEN BEGIN
                             IF (APVLE."Entry No." = VendLedgEntry."Entry No.") THEN BEGIN
-                                WITH APVLE DO BEGIN
 
-                                    GenJnlLine2.RESET;
-                                    GenJnlLine2.INIT;
-                                    //CALCFIELDS(APVLE.Amount);
-                                    //CALCFIELDS(APVLE."Remaining Amt. (LCY)");
-                                    //CALCFIELDS(APVLE."Original Amt. (LCY)");
-                                    CopyVLEtoGenJnlLine(APVLE, GenJnlLine2);
-                                    GenJnlLine2."Document Type" := GenJnlLine2."Document Type"::Payment;
-                                    IF APVLE."AP Account No." <> '' THEN
-                                        GenJnlLine2."Account No." := APVLE."AP Account No.";
+                                GenJnlLine2.RESET;
+                                GenJnlLine2.INIT;
+                                //CALCFIELDS(APVLE.Amount);
+                                //CALCFIELDS(APVLE."Remaining Amt. (LCY)");
+                                //CALCFIELDS(APVLE."Original Amt. (LCY)");
+                                CopyVLEtoGenJnlLine(APVLE, GenJnlLine2);
+                                GenJnlLine2."Document Type" := GenJnlLine2."Document Type"::Payment;
+                                IF APVLE."AP Account No." <> '' THEN
+                                    GenJnlLine2."Account No." := APVLE."AP Account No.";
 
-                                    GenJnlLine2."Source Line No." := APVLE."Entry No.";
-                                    IF APVLE."Entry No." = VendLedgEntry."Entry No." THEN BEGIN
-                                        Vend.GET(APVLE."Vendor No.");
-                                        Vend.CheckBlockedVendOnJnls(Vend, "Document Type", TRUE);
+                                GenJnlLine2."Source Line No." := APVLE."Entry No.";
+                                IF APVLE."Entry No." = VendLedgEntry."Entry No." THEN BEGIN
+                                    Vend.GET(APVLE."Vendor No.");
+                                    Vend.CheckBlockedVendOnJnls(Vend, APVLE."Document Type", TRUE);
 
-                                        IF "Posting Group" = '' THEN BEGIN
-                                            Vend.TESTFIELD("Vendor Posting Group");
-                                            "Posting Group" := Vend."Vendor Posting Group";
-                                        END;
-                                        VendpostingGr.GET("Posting Group");
-                                        GenJnlLine2."Account No." := VendpostingGr.GetPayablesAccount;
-
-                                        GenJnlLine2."Source Type" := GenJnlLine."Source Type"::Vendor;
-                                        GenJnlLine2."Source No." := "Vendor No.";
-                                        GenJnlLine2."Source Code" := SourceCodeSetup."Purchase Entry Application";
-                                        GenJnlLine2."System-Created Entry" := TRUE;
-                                        GenJnlLine2."Source Line No." := 0;
-
+                                    IF "Posting Group" = '' THEN BEGIN
+                                        Vend.TESTFIELD("Vendor Posting Group");
+                                        "Posting Group" := Vend."Vendor Posting Group";
                                     END;
-                                    GenJnlLine2.Amount := DetailVLE.Amount * -1;
-                                    GenJnlLine2."Amount (LCY)" := DetailVLE."Amount (LCY)" * -1;
+                                    VendpostingGr.GET("Posting Group");
+                                    GenJnlLine2."Account No." := VendpostingGr.GetPayablesAccount;
 
+                                    GenJnlLine2."Source Type" := GenJnlLine."Source Type"::Vendor;
+                                    GenJnlLine2."Source No." := APVLE."Vendor No.";
+                                    GenJnlLine2."Source Code" := SourceCodeSetup."Purchase Entry Application";
+                                    GenJnlLine2."System-Created Entry" := TRUE;
+                                    GenJnlLine2."Source Line No." := 0;
 
                                 END;
+                                GenJnlLine2.Amount := DetailVLE.Amount * -1;
+                                GenJnlLine2."Amount (LCY)" := DetailVLE."Amount (LCY)" * -1;
                                 //  COMMIT;
                             END;
 
@@ -1172,75 +1164,71 @@ codeunit 50010 Eventsubscriber_and_CU227
                             IF APVLE.FIND('-') THEN BEGIN
                                 // TempGLEntryBuf.DELETEALL();
                                 IF (APVLE."Entry No." = VendLedEntry."Entry No.") THEN BEGIN
-                                    WITH APVLE DO BEGIN
 
-                                        GenJnlLine2.RESET;
-                                        GenJnlLine2.INIT;
-                                        CALCFIELDS(APVLE.Amount);
-                                        CALCFIELDS(APVLE."Amount (LCY)");
-                                        CALCFIELDS(APVLE."Remaining Amt. (LCY)");
-                                        CALCFIELDS(APVLE."Original Amt. (LCY)");
-                                        CopyVLEtoGenJnlLine(APVLE, GenJnlLine2);
-                                        GenJnlLine2."Document Type" := GenJnlLine2."Document Type"::Payment;
-                                        IF APVLE."AP Account No." <> '' THEN
-                                            GenJnlLine2."Account No." := APVLE."AP Account No.";
+                                    GenJnlLine2.RESET;
+                                    GenJnlLine2.INIT;
+                                    APVLE.CALCFIELDS(APVLE.Amount);
+                                    APVLE.CALCFIELDS(APVLE."Amount (LCY)");
+                                    APVLE.CALCFIELDS(APVLE."Remaining Amt. (LCY)");
+                                    APVLE.CALCFIELDS(APVLE."Original Amt. (LCY)");
+                                    CopyVLEtoGenJnlLine(APVLE, GenJnlLine2);
+                                    GenJnlLine2."Document Type" := GenJnlLine2."Document Type"::Payment;
+                                    IF APVLE."AP Account No." <> '' THEN
+                                        GenJnlLine2."Account No." := APVLE."AP Account No.";
 
-                                        GenJnlLine2."Source Line No." := APVLE."Entry No.";
-                                        IF APVLE."Entry No." = VendLedEntry."Entry No." THEN BEGIN
-                                            Vend.GET(APVLE."Vendor No.");
-                                            Vend.CheckBlockedVendOnJnls(Vend, "Document Type", TRUE);
+                                    GenJnlLine2."Source Line No." := APVLE."Entry No.";
+                                    IF APVLE."Entry No." = VendLedEntry."Entry No." THEN BEGIN
+                                        Vend.GET(APVLE."Vendor No.");
+                                        Vend.CheckBlockedVendOnJnls(Vend, APVLE."Document Type", TRUE);
 
-                                            IF "Posting Group" = '' THEN BEGIN
-                                                Vend.TESTFIELD("Vendor Posting Group");
-                                                "Posting Group" := Vend."Vendor Posting Group";
-                                            END;
-                                            VendpostingGr.GET("Posting Group");
-                                            GenJnlLine2."Account No." := VendpostingGr.GetPayablesAccount;
-
-                                            //  GenJnlLine2."Source Type" := GenJnlLine2."Source Type"::Vendor;
-                                            //  GenJnlLine2."Source No." := "Vendor No.";
-                                            //   GenJnlLine2."Source Code" := SourceCodeSetup."Purchase Entry Application";
-                                            GenJnlLine2."System-Created Entry" := TRUE;
-                                            GenJnlLine2."Source Line No." := 0;
-
+                                        IF "Posting Group" = '' THEN BEGIN
+                                            Vend.TESTFIELD("Vendor Posting Group");
+                                            "Posting Group" := Vend."Vendor Posting Group";
                                         END;
-                                        //IF DetailVLE."Entry Type" = DetailVLE."Entry Type"::"Payment Discount" THEN
-                                        //BEGIN
-                                        GenJnlLine2.Amount := DetailVLE.Amount;
-                                        GenJnlLine2."Amount (LCY)" := DetailVLE."Amount (LCY)";
-                                        //END
-                                        //ELSE
-                                        //BEGIN
-                                        //  GenJnlLine2.Amount := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
-                                        //  GenJnlLine2."Amount (LCY)" := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
-                                        //END;
+                                        VendpostingGr.GET("Posting Group");
+                                        GenJnlLine2."Account No." := VendpostingGr.GetPayablesAccount;
+
+                                        //  GenJnlLine2."Source Type" := GenJnlLine2."Source Type"::Vendor;
+                                        //  GenJnlLine2."Source No." := "Vendor No.";
+                                        //   GenJnlLine2."Source Code" := SourceCodeSetup."Purchase Entry Application";
+                                        GenJnlLine2."System-Created Entry" := TRUE;
+                                        GenJnlLine2."Source Line No." := 0;
+
                                     END;
+                                    //IF DetailVLE."Entry Type" = DetailVLE."Entry Type"::"Payment Discount" THEN
+                                    //BEGIN
+                                    GenJnlLine2.Amount := DetailVLE.Amount;
+                                    GenJnlLine2."Amount (LCY)" := DetailVLE."Amount (LCY)";
+                                    //END
+                                    //ELSE
+                                    //BEGIN
+                                    //  GenJnlLine2.Amount := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
+                                    //  GenJnlLine2."Amount (LCY)" := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
+                                    //END;
                                 END;
 
                                 IF (APVLE."AP Account No." <> '') OR (APVLE."Entry No." = VendLedEntry."Entry No.") THEN BEGIN
-                                    WITH APVLE DO BEGIN
 
-                                        CALCFIELDS(APVLE.Amount);
-                                        CALCFIELDS(APVLE."Remaining Amt. (LCY)");
-                                        CALCFIELDS(APVLE."Original Amt. (LCY)");
-                                        GenJnlLine2."Document Type" := GenJnlLine2."Document Type"::Payment;
-                                        IF APVLE."AP Account No." <> '' THEN
-                                            GenJnlLine2."Account No." := APVLE."AP Account No.";
+                                    APVLE.CALCFIELDS(APVLE.Amount);
+                                    APVLE.CALCFIELDS(APVLE."Remaining Amt. (LCY)");
+                                    APVLE.CALCFIELDS(APVLE."Original Amt. (LCY)");
+                                    GenJnlLine2."Document Type" := GenJnlLine2."Document Type"::Payment;
+                                    IF APVLE."AP Account No." <> '' THEN
+                                        GenJnlLine2."Account No." := APVLE."AP Account No.";
 
-                                        GenJnlLine2."Source Line No." := APVLE."Entry No.";
-                                        //IF DetailVLE."Entry Type" = DetailVLE."Entry Type"::"Payment Discount" THEN
-                                        //BEGIN
-                                        GenJnlLine2.Amount := DetailVLE.Amount;
-                                        GenJnlLine2."Amount (LCY)" := DetailVLE."Amount (LCY)";
-                                        //END
-                                        //ELSE
-                                        //BEGIN
-                                        //  GenJnlLine2.Amount := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
-                                        //  GenJnlLine2."Amount (LCY)" := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
-                                        //END;
+                                    GenJnlLine2."Source Line No." := APVLE."Entry No.";
+                                    //IF DetailVLE."Entry Type" = DetailVLE."Entry Type"::"Payment Discount" THEN
+                                    //BEGIN
+                                    GenJnlLine2.Amount := DetailVLE.Amount;
+                                    GenJnlLine2."Amount (LCY)" := DetailVLE."Amount (LCY)";
+                                    //END
+                                    //ELSE
+                                    //BEGIN
+                                    //  GenJnlLine2.Amount := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
+                                    //  GenJnlLine2."Amount (LCY)" := (APVLE."Original Amt. (LCY)"  - APVLE."Remaining Amt. (LCY)") * -1;
+                                    //END;
 
-                                        PostGLAcc(GenJnlLine2);
-                                    END;
+                                    PostGLAcc(GenJnlLine2);
                                     //              COMMIT;
                                 END;
 

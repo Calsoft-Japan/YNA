@@ -30,12 +30,14 @@ tableextension 55600 "Fixed Asset Ext" extends "Fixed Asset"
         {
             Description = 'CS1.0';
         }
-        field(50004; "Machine No."; Text[10])
+        field(50004; "Machine No."; Text[12])
         {
+            Caption = 'BC QR Tag No.';
             Description = 'CS1.0';
         }
         field(50005; "Drawing No."; Text[11])
         {
+            Caption = 'QR Child No.';
             Description = 'CS1.0';
         }
         field(50006; "Lease/Borrowing"; Option)

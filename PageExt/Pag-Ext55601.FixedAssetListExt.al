@@ -28,6 +28,10 @@ pageextension 55601 FixedAssetListExt extends "Fixed Asset List"
             {
                 ApplicationArea = All;
             }
+            field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
+            {
+                ApplicationArea = All;
+            }
             field("Machine No."; Rec."Machine No.")
             {
                 ApplicationArea = All;
